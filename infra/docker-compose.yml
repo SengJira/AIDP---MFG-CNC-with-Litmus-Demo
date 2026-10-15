@@ -1,0 +1,13 @@
+services:
+  cnc-spindle-dashboard:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    image: cnc-spindle-health:latest
+    container_name: cnc-spindle-health
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - OFFLINE_MODE=${OFFLINE_MODE:-0}
