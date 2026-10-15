@@ -15,11 +15,8 @@ A booth-ready predictive-maintenance demo for CNC spindles on the Dell AI Data P
 
 - Python 3.11+
 - `python3` on PATH (the environment does not provide `python`)
-- Environment variables for the AIDP lab:
-  - `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`
-  - `TRINO_USER`, `TRINO_PASS`
-  - `ELASTIC_ENDPOINT`, `ELASTIC_API_KEY` (optional)
-  - `AIDP_MCP_URL`, `AIDP_MCP_AUTH` (for the Devin MCP demo)
+- Credentials for the AIDP lab are loaded from a file outside the repo (e.g. `~/.cnc-demo-credentials`) by `scripts/setup_env.sh`.
+- Required variables: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `TRINO_USER`, `TRINO_PASS`; optional: `ELASTIC_ENDPOINT`, `ELASTIC_API_KEY`.
 
 Install the required packages locally:
 
@@ -27,16 +24,12 @@ Install the required packages locally:
 pip install --user streamlit plotly pyspark pandas numpy scikit-learn scipy pyarrow boto3 trino elasticsearch pytest mcp
 ```
 
-If you run the DPE CLI, point `JAVA_HOME` to Java 27 (the CLI rejects Java 21):
-
-```bash
-export JAVA_HOME=/home/betalab/workspace/tk/openjdk/jdk-27
-export PATH=$JAVA_HOME/bin:$PATH
-```
-
 ## Quick start
 
 ```bash
+# Load credentials and configure Java/Spark/PySpark environment
+source scripts/setup_env.sh
+
 # full setup (generates data, lands to S3/Trino, runs detections, seeds the Label Bank, indexes knowledge)
 make demo-setup
 
@@ -72,3 +65,12 @@ data/             raw CSVs and processed Parquet/JSON outputs
 ## Offline mode
 
 Set `OFFLINE_MODE=1` to serve the dashboard from cached Parquet and knowledge JSON without any S3, Trino or Elastic calls. Useful for a laptop or a booth with no lab network.
+
+## DPE CLI
+
+The DPE CLI requires Java 27 while PySpark needs Java 21. `setup_env.sh` keeps the default Java for PySpark and provides a `dpe` function that uses `DPE_JAVA_HOME`:
+
+```bash
+source scripts/setup_env.sh
+dpe version
+```
