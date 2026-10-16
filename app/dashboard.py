@@ -78,6 +78,10 @@ def load_sensor(equipment_id=None):
         df = df[df["equipment_id"] == equipment_id]
     time_col = "Timestamp" if "Timestamp" in df.columns else "ts"
     df["ts"] = pd.to_datetime(df[time_col])
+    # Trino normalizes unquoted identifiers to lowercase; offline Parquet keeps the original uppercase signal names
+    for c in list(df.columns):
+        if c.upper() in SIGNALS:
+            df = df.rename(columns={c: c.upper()})
     return df.sort_values("ts").reset_index(drop=True)
 
 
