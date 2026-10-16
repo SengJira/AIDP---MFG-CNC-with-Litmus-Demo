@@ -305,14 +305,16 @@ def render_detect():
 
 def render_investigate():
     st.subheader("Investigate")
-    events = load_events("cnc01_baseline")
+    run_id = st.session_state.get("detect_run_id", "cnc01_baseline")
+    equipment_id = st.session_state.get("detect_equip", "CNC-01")
+    events = load_events(run_id)
     if events.empty:
-        st.info("No events loaded. Run detection for CNC-01 first.")
+        st.info(f"No events loaded for run {run_id}. Run detection for {equipment_id} first.")
         return
     ev_id = st.selectbox("Select event", events["event_id"], key="inv_event")
     ev = events[events["event_id"] == ev_id].iloc[0]
     sigs = ev["signals"]
-    df = load_sensor("CNC-01")
+    df = load_sensor(equipment_id)
     mask = (df["ts"] >= ev["start_ts"]) & (df["ts"] <= ev["end_ts"])
     w = df[mask]
     if w.empty:
