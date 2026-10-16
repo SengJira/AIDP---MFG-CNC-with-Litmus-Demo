@@ -76,7 +76,8 @@ def load_sensor(equipment_id=None):
         df = trino_query(f"SELECT * FROM {CATALOG}.{SCHEMA}.sensor_readings")
     if equipment_id:
         df = df[df["equipment_id"] == equipment_id]
-    df["ts"] = pd.to_datetime(df["Timestamp"])
+    time_col = "Timestamp" if "Timestamp" in df.columns else "ts"
+    df["ts"] = pd.to_datetime(df[time_col])
     return df.sort_values("ts").reset_index(drop=True)
 
 
