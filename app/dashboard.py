@@ -305,15 +305,18 @@ def render_detect():
 
 def render_investigate():
     st.subheader("Investigate")
-    run_id = st.session_state.get("detect_run_id", "cnc01_baseline")
-    equipment_id = st.session_state.get("detect_equip", "CNC-01")
+    available_runs = sorted([p.name for p in PROCESSED.iterdir() if (p / "anomaly_events.parquet").exists()])
+    default = st.session_state.get("detect_run_id", "cnc01_baseline")
+    if default not in available_runs:
+        default = "cnc01_baseline" if "cnc01_baseline" in available_runs else (available_runs[0] if available_runs else None)
+    run_id = st.selectbox("Select run", available_runs, index=available_runs.index(default) if default in available_runs else 0, key="inv_run")
     events = load_events(run_id)
     if events.empty:
-        st.info(f"No events loaded for run {run_id}. Run detection for {equipment_id} first.")
+        st.info(f"No events loaded for run {run_id}.")
         return
     ev_id = st.selectbox("Select event", events["event_id"], key="inv_event")
     ev = events[events["event_id"] == ev_id].iloc[0]
-    sigs = ev["signals"]
+    equipment_id = ev["equipment_id"]
     df = load_sensor(equipment_id)
     mask = (df["ts"] >= ev["start_ts"]) & (df["ts"] <= ev["end_ts"])
     w = df[mask]
