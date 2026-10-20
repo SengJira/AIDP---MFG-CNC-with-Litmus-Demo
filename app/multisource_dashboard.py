@@ -148,7 +148,7 @@ def tab_360():
     d["day"] = pd.to_datetime(d["day"])
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(go.Scatter(x=d["day"], y=d["avg_vib_x"], name="VIB_X mm/s", line=dict(color=DELL_BLUE, width=3)), secondary_y=False)
-    fig.add_trace(go.Bar(x=d["day"], y=d["scrap_parts"], name="scrap parts", marker_color="#ff6b6b", opacity=0.6), secondary_y=True)
+    fig.add_trace(go.Bar(x=d["day"], y=d["scrap"], name="scrap parts", marker_color="#ff6b6b", opacity=0.6), secondary_y=True)
     ncr = d[d["ncr_count"] > 0]
     if not ncr.empty:
         fig.add_trace(go.Scatter(x=ncr["day"], y=[d["avg_vib_x"].max() * 1.05] * len(ncr), mode="markers", marker=dict(color="red", size=12, symbol="x"), name="NCR opened"), secondary_y=False)
