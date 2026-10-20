@@ -32,10 +32,9 @@ st.set_page_config(page_title="CNC Spindle Health", layout="wide")
 st.markdown(
     """
     <style>
-    .stApp { background-color: #0b0f19; color: #e6e6e6; }
     .big-title { font-size: 2.4rem; font-weight: 700; color: #007db8; }
-    .kpi { font-size: 2rem; font-weight: 700; color: #ffffff; }
-    .kpi-label { font-size: 0.9rem; color: #9aa5b1; }
+    .kpi { font-size: 2rem; font-weight: 700; color: #1f2937; }
+    .kpi-label { font-size: 0.9rem; color: #5f6368; }
     .live { color: #00c853; font-weight: 700; }
     .fallback { color: #9e9e9e; font-weight: 700; }
     .stTabs [data-baseweb="tab-list"] { font-size: 1.1rem; }
@@ -294,7 +293,7 @@ def render_detect():
             fig.add_vrect(x0=ev["start_ts"], x1=ev["end_ts"], fillcolor="red", opacity=0.15, line_width=0)
     if equipment == "CNC-01":
         fig.add_vline(x="2024-01-17 12:00:00", line_color="#ffeb3b", line_dash="dot", annotation_text="First warning")
-    fig.update_layout(template="plotly_dark", title="Vibration X & Y with anomaly shading", height=450)
+    fig.update_layout(template="plotly_white", title="Vibration X & Y with anomaly shading", height=450)
     st.plotly_chart(fig, use_container_width=True)
 
     if not scores.empty:
@@ -330,7 +329,7 @@ def render_investigate():
         for c in cols:
             if c in w.columns:
                 fig.add_trace(go.Scatter(x=w["ts"], y=w[c], name=c))
-        fig.update_layout(template="plotly_dark", height=300, margin=dict(l=20, r=20, t=30, b=20))
+        fig.update_layout(template="plotly_white", height=300, margin=dict(l=20, r=20, t=30, b=20))
         st.plotly_chart(fig, use_container_width=True)
 
     c1, c2 = st.columns(2)
