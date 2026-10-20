@@ -169,7 +169,7 @@ def tab_360():
         template="plotly_white",
         hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
-        xaxis=dict(tickangle=-45, nticks=20, tickformat="%b %d"),
+        xaxis=dict(tickangle=-45, tickformat="%b %d", dtick=7*24*60*60*1000),
     )
     fig.update_yaxes(title_text="VIB_X mm/s", autorange=True, rangemode="normal", secondary_y=False)
     fig.update_yaxes(title_text="scrap parts", autorange=True, rangemode="tozero", secondary_y=True)
