@@ -57,14 +57,30 @@ def source_counts():
         "MES Orders": ("js_mysql_mfg.js_mysql_mfg.cnc_mes_production_orders", "MySQL"),
         "MES Lots": ("js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots", "MySQL"),
         "MES Downtime": ("js_mysql_mfg.js_mysql_mfg.cnc_mes_downtime_events", "MySQL"),
+        "MES Material Consumption": ("js_mysql_mfg.js_mysql_mfg.cnc_mes_material_consumption", "MySQL"),
         "ERP Customers": ("js_mysql_mfg.js_mysql_mfg.cnc_erp_customers", "MySQL"),
         "ERP Materials": ("js_mysql_mfg.js_mysql_mfg.cnc_erp_materials", "MySQL"),
         "ERP Sales": ("js_mysql_mfg.js_mysql_mfg.cnc_erp_sales_orders", "MySQL"),
         "ERP POs": ("js_mysql_mfg.js_mysql_mfg.cnc_erp_purchase_orders", "MySQL"),
         "ERP Stock": ("js_mysql_mfg.js_mysql_mfg.cnc_erp_spare_parts_stock", "MySQL"),
         "ERP Rates": ("js_mysql_mfg.js_mysql_mfg.cnc_erp_cost_rates", "MySQL"),
+        "SQM Suppliers": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_suppliers", "MySQL"),
+        "SQM Approved Sources": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_approved_sources", "MySQL"),
+        "SQM Material Specs": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_specs", "MySQL"),
+        "SQM Material Lots": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_lots", "MySQL"),
+        "SQM CoAs": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_certificates_of_analysis", "MySQL"),
+        "SQM Inspections": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_incoming_inspections", "MySQL"),
+        "SQM SCARs": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_scar", "MySQL"),
+        "SQM Scorecard": ("js_mysql_mfg.js_mysql_mfg.cnc_sqm_supplier_scorecard", "MySQL"),
     }
-    return {name: (fqn, store, trino_query(f"SELECT count(*) FROM {fqn}").iloc[0, 0]) for name, (fqn, store) in sources.items()}
+    counts = {name: (fqn, store, trino_query(f"SELECT count(*) FROM {fqn}").iloc[0, 0]) for name, (fqn, store) in sources.items()}
+    # Elasticsearch counts
+    if not OFFLINE:
+        from elasticsearch import Elasticsearch
+        es = Elasticsearch(os.environ["ELASTIC_ENDPOINT"], api_key=os.environ["ELASTIC_API_KEY"], verify_certs=False, ssl_show_warn=False)
+        counts["Logbook"] = ("cnc-demo-shift-logbook", "Elasticsearch", es.count(index="cnc-demo-shift-logbook")["count"])
+        counts["Supplier Docs"] = ("cnc-demo-supplier-docs", "Elasticsearch", es.count(index="cnc-demo-supplier-docs")["count"])
+    return counts
 
 
 @st.cache_data(ttl=30)
@@ -82,6 +98,49 @@ def order_risk():
     return load_table("js_manuf_ice.cnc_analytics.order_risk", "order_risk.parquet")
 
 
+@st.cache_data(ttl=30)
+def supplier_vibration_summary():
+    return load_table("js_manuf_ice.cnc_analytics.supplier_vibration_summary", "supplier_vibration_summary.parquet")
+
+
+@st.cache_data(ttl=30)
+def supplier_lot_impact():
+    return load_table("js_manuf_ice.cnc_analytics.supplier_lot_impact", "supplier_lot_impact.parquet")
+
+
+@st.cache_data(ttl=30)
+def sqm_scorecard():
+    return load_table("js_mysql_mfg.js_mysql_mfg.cnc_sqm_supplier_scorecard", "sqm_scorecard.parquet")
+
+
+@st.cache_data(ttl=30)
+def sqm_material_lots():
+    return load_table("js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_lots", "sqm_material_lots.parquet")
+
+
+@st.cache_data(ttl=30)
+def sqm_certificates():
+    return load_table("js_mysql_mfg.js_mysql_mfg.cnc_sqm_certificates_of_analysis", "sqm_certificates.parquet")
+
+
+@st.cache_data(ttl=30)
+def sqm_incoming_inspections():
+    return load_table("js_mysql_mfg.js_mysql_mfg.cnc_sqm_incoming_inspections", "sqm_incoming_inspections.parquet")
+
+
+@st.cache_data(ttl=30)
+def scar():
+    return load_table("js_mysql_mfg.js_mysql_mfg.cnc_sqm_scar", "sqm_scar.parquet")
+
+
+def es_supplier_doc(material_lot_id):
+    from elasticsearch import Elasticsearch
+    es = Elasticsearch(os.environ["ELASTIC_ENDPOINT"], api_key=os.environ["ELASTIC_API_KEY"], verify_certs=False, ssl_show_warn=False)
+    res = es.search(index="cnc-demo-supplier-docs", body={"query": {"term": {"material_lot_id.keyword": material_lot_id}}})
+    hits = res["hits"]["hits"]
+    return hits[0]["_source"]["text"] if hits else None
+
+
 def title(text):
     st.markdown(f"<h1 style='color:{DELL_NAVY};font-size:2.4rem;font-weight:700;'>{text}</h1>", unsafe_allow_html=True)
 
@@ -91,9 +150,8 @@ def badge(text):
 
 
 def reset_demo():
-    # The reset is delegated to the loader and analytics scripts.
-    # In a self-contained demo this button is a placeholder.
-    os.system("source scripts/setup_env.sh && python3 scripts/load_multisource.py && python3 scripts/create_analytics_views.py")
+    # Delegated to the idempotent v2 loader and analytics rebuild.
+    os.system("python3 jobs/ingest_raw.py --pack data/multisource_v2 --no-s3 && python3 scripts/create_analytics_views.py")
     st.success("Demo reset triggered. Refresh the page.")
 
 
@@ -115,6 +173,7 @@ def tab_sources():
             ("Production orders", counts["MES Orders"][0], counts["MES Orders"][1], counts["MES Orders"][2]),
             ("Production lots", counts["MES Lots"][0], counts["MES Lots"][1], counts["MES Lots"][2]),
             ("Downtime events", counts["MES Downtime"][0], counts["MES Downtime"][1], counts["MES Downtime"][2]),
+            ("Material consumption", counts["MES Material Consumption"][0], counts["MES Material Consumption"][1], counts["MES Material Consumption"][2]),
         ],
         "ERP": [
             ("Customers", counts["ERP Customers"][0], counts["ERP Customers"][1], counts["ERP Customers"][2]),
@@ -123,6 +182,17 @@ def tab_sources():
             ("Purchase orders", counts["ERP POs"][0], counts["ERP POs"][1], counts["ERP POs"][2]),
             ("Spare parts stock", counts["ERP Stock"][0], counts["ERP Stock"][1], counts["ERP Stock"][2]),
             ("Cost rates", counts["ERP Rates"][0], counts["ERP Rates"][1], counts["ERP Rates"][2]),
+        ],
+        "SQM": [
+            ("Suppliers", counts["SQM Suppliers"][0], counts["SQM Suppliers"][1], counts["SQM Suppliers"][2]),
+            ("Approved sources", counts["SQM Approved Sources"][0], counts["SQM Approved Sources"][1], counts["SQM Approved Sources"][2]),
+            ("Material specs", counts["SQM Material Specs"][0], counts["SQM Material Specs"][1], counts["SQM Material Specs"][2]),
+            ("Material lots", counts["SQM Material Lots"][0], counts["SQM Material Lots"][1], counts["SQM Material Lots"][2]),
+            ("CoAs", counts["SQM CoAs"][0], counts["SQM CoAs"][1], counts["SQM CoAs"][2]),
+            ("Inspections", counts["SQM Inspections"][0], counts["SQM Inspections"][1], counts["SQM Inspections"][2]),
+            ("SCARs", counts["SQM SCARs"][0], counts["SQM SCARs"][1], counts["SQM SCARs"][2]),
+            ("Scorecards", counts["SQM Scorecard"][0], counts["SQM Scorecard"][1], counts["SQM Scorecard"][2]),
+            ("Supplier docs", counts["Supplier Docs"][0], counts["Supplier Docs"][1], counts["Supplier Docs"][2]),
         ],
     }
     cols = st.columns(len(grouped))
@@ -176,6 +246,80 @@ def tab_360():
     st.dataframe(d.sort_values("day"), use_container_width=True)
 
 
+def tab_supplier():
+    title("Supplier Quality")
+    # 1. Vibration summary chart
+    vib = supplier_vibration_summary()
+    if vib.empty:
+        st.warning("No supplier vibration summary available.")
+        return
+    fig = px.bar(vib, x="period", y="avg_vib_x", color="main_supplier_id", barmode="group",
+                 facet_col="machine_id", facet_col_wrap=2,
+                 labels={"avg_vib_x": "mean VIB_X mm/s", "period": "period", "main_supplier_id": "supplier"},
+                 color_discrete_sequence=[DELL_BLUE, "#ff6b6b", "#2ecc71", "#f1c40f"])
+    for ann in fig.layout.annotations:
+        ann.text = ann.text.split("=")[-1]
+    fig.update_layout(height=450, template="plotly_white",
+                      legend=dict(orientation="h", yanchor="bottom", y=-0.35, xanchor="center", x=0.5))
+    st.plotly_chart(fig, use_container_width=True)
+
+    c1, c2 = st.columns([2, 1])
+    with c1:
+        st.markdown(f"<h3 style='color:{DELL_NAVY};'>Claimed vs measured hardness</h3>", unsafe_allow_html=True)
+        cert = sqm_certificates()
+        insp = sqm_incoming_inspections()
+        if not cert.empty and not insp.empty:
+            # only material lots with hardness CoA and hardness inspections
+            hard = insp[(insp["characteristic"].str.upper().str.contains("HARDNESS")) | (insp["characteristic"].str.upper() == "HARDNESS_HB")]
+            hard_agg = hard.groupby("material_lot_id").agg(
+                measured_min=("measured", "min"),
+                measured_max=("measured", "max"),
+                skipped=("result", lambda x: (x == "SKIPPED").any()),
+            ).reset_index()
+            merged = cert.merge(hard_agg, on="material_lot_id", how="inner")
+            merged = merged.merge(sqm_material_lots()[["material_lot_id", "supplier_id", "material_id"]], on="material_lot_id", how="left")
+            merged = merged[["material_lot_id", "supplier_id", "material_id", "hardness_hb_claimed", "measured_min", "measured_max", "skipped"]]
+            merged = merged.sort_values("measured_max", ascending=False)
+            def highlight_skipped(row):
+                return ["background-color: #ffe6e6" if row["skipped"] else "" for _ in row]
+            st.dataframe(merged.style.apply(highlight_skipped, axis=1), use_container_width=True)
+
+    with c2:
+        st.markdown(f"<h3 style='color:{DELL_NAVY};'>SCAR-24-003</h3>", unsafe_allow_html=True)
+        s = scar()
+        if not s.empty:
+            row = s.iloc[0]
+            st.markdown(f"**Supplier:** {row['supplier_id']}")
+            st.markdown(f"**Problem:** {row['problem']}")
+            st.markdown(f"**8D root cause:** {row['root_cause_8d']}")
+            st.markdown(f"**Claim:** USD {row['cost_claim_usd']:,.2f}")
+        st.markdown(f"<h3 style='color:{DELL_NAVY};'>Supplier scorecard</h3>", unsafe_allow_html=True)
+        st.dataframe(sqm_scorecard(), use_container_width=True)
+
+    st.markdown(f"<h3 style='color:{DELL_NAVY};'>Lot drill-down</h3>", unsafe_allow_html=True)
+    lots = supplier_lot_impact()
+    if not lots.empty:
+        selected = st.selectbox("Select a supplier material lot", lots["material_lot_id"].unique(), key="supplier_lot_select")
+        lot = lots[lots["material_lot_id"] == selected].iloc[0]
+        c1, c2 = st.columns([1, 1])
+        with c1:
+            st.markdown(f"**Supplier:** {lot['supplier_id']}")
+            st.markdown(f"**Material:** {lot['material_id']}")
+            st.markdown(f"**MES lots consumed:** {lot['mes_lots']}")
+            st.markdown(f"**Machines:** {lot['machines']}")
+            st.markdown(f"**Claimed hardness HB:** {lot['hardness_hb_claimed']}")
+            st.markdown(f"**Measured hardness HB:** {lot['measured_hardness_min']:.0f}–{lot['measured_hardness_max']:.0f}")
+            st.markdown(f"**Balance grade claimed:** {lot['balance_grade_claimed']}")
+            st.markdown(f"**SKIPPED inspection:** {bool(lot['inspection_skipped'])}")
+        with c2:
+            text = es_supplier_doc(selected)
+            if text:
+                st.markdown("**Certificate text**")
+                st.markdown(text)
+            else:
+                st.write("No certificate text found.")
+
+
 def tab_impact():
     title("Impact & Cost")
     df = event_cost()
@@ -187,14 +331,20 @@ def tab_impact():
     st.dataframe(df, use_container_width=True)
     st.markdown(f"<h3 style='color:{DELL_NAVY};'>CNC-01 Cross-Source Timeline</h3>", unsafe_allow_html=True)
     timeline = [
+        ("2024-01-12", "SQM", "SUP-B lots released on CoA"),
+        ("2024-01-15", "SQM", "SUP-B castings issued to CNC-01"),
         ("2024-01-17 12:00", "Historian", "VIB_X first exceeds baseline + 3σ"),
         ("2024-01-19 23:40", "Logbook", "LB-00208: faint high-pitched whine"),
         ("2024-01-24 15:20", "Logbook", "LB-00209: whine louder, told maintenance"),
         ("2024-01-28 B", "QA", "NCR-24-0001 first roundness reject"),
         ("2024-01-30", "CMMS", "WO-24-0117 raised"),
+        ("2024-02-03", "SQM", "Hardness audit, SCAR-24-003 opened"),
         ("2024-02-05 22:00", "MES", "8-hour bearing stop, SPINDLE_RPM = 0"),
+        ("2024-02-15", "SQM", "SCAR-24-003 closed"),
         ("2024-02-20", "ERP", "SO-45012 ships 5 days late, penalty $1,920"),
         ("2024-02-24", "QA", "CC-24-001 complaint: 20 escaped parts"),
+        ("2024-03-24", "SQM", "SUP-B trial lots return"),
+        ("2024-04-08", "SQM", "Toolholder TH-0007 received"),
     ]
     for ts, lane, note in timeline:
         col1, col2 = st.columns([1, 4])
@@ -212,6 +362,8 @@ def tab_ask():
         "When did any system first show the CNC-01 bearing problem?": "q2_first_bearing",
         "Was the motor-current alarm on 20–25 Feb a real problem?": "q3_motor_drift",
         "Should we stop CNC-02 for 8 hours this week, and will SO-45060 still ship on time?": "q4_cnc02_stop",
+        "Is a supplier material linked to the CNC-01 vibration?": "q5_supplier_b",
+        "Are CNC-02's new steel billets from SUP-E causing its vibration?": "q6_cnc02_steel",
     }
     for q, fname in questions.items():
         if st.button(q, use_container_width=True):
@@ -232,14 +384,17 @@ def main():
     st.sidebar.title("Spindle to Customer")
     if OFFLINE:
         st.sidebar.warning("OFFLINE MODE: cached data only")
+    badge("synthetic data")
     st.sidebar.markdown("---")
     if st.sidebar.button("Reset demo"):
         reset_demo()
-    tab = st.sidebar.radio("Tab", ["Sources", "360°", "Impact", "Ask AI"])
+    tab = st.sidebar.radio("Tab", ["Sources", "360°", "Supplier", "Impact", "Ask AI"])
     if tab == "Sources":
         tab_sources()
     elif tab == "360°":
         tab_360()
+    elif tab == "Supplier":
+        tab_supplier()
     elif tab == "Impact":
         tab_impact()
     else:

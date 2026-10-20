@@ -1,0 +1,17 @@
+{
+  "question": "Are CNC-02's new steel billets from SUP-E causing its vibration?",
+  "sql": [
+    "SELECT equipment_id, ts, VIB_X_MM_S FROM js_manuf_ice.cnc_historian.sensor_readings WHERE equipment_id='CNC-02' AND ts >= TIMESTAMP '2024-04-10 18:00:00' AND ts < TIMESTAMP '2024-04-11 00:00:00' ORDER BY ts",
+    "SELECT lot_id, start_ts, end_ts, main_supplier_id, avg_vib_x FROM js_manuf_ice.cnc_analytics.lot_context WHERE machine_id='CNC-02' AND start_ts >= TIMESTAMP '2024-04-10 14:00:00' AND start_ts < TIMESTAMP '2024-04-14 00:00:00' ORDER BY start_ts",
+    "SELECT lot_id, machine_id, material_lot_id, raw_material_id, supplier_id, qty_consumed, issued_ts FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_material_consumption WHERE machine_id='CNC-02' ORDER BY issued_ts LIMIT 5",
+    "SELECT material_lot_id, supplier_id, material_id, release_decision FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_lots WHERE supplier_id='SUP-E'",
+    "SELECT inspection_id, material_lot_id, characteristic, measured, result FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_incoming_inspections WHERE material_lot_id IN (SELECT material_lot_id FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_lots WHERE supplier_id='SUP-E')",
+    "SELECT coa_id, material_lot_id, balance_grade_claimed, test_location FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_certificates_of_analysis WHERE material_lot_id='ML-24-0901'",
+    "SELECT inspection_id, material_lot_id, inspection_type, characteristic, result FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_incoming_inspections WHERE material_lot_id='ML-24-0901'",
+    "SELECT note_id, text FROM cnc-demo-shift-logbook WHERE note_id='LB-00217'",
+    "SELECT wo_id, problem, status FROM js_manuf_ice.cnc_cmms.work_orders WHERE wo_id='WO-24-0241'"
+  ],
+  "mcp_query_ids": ["mcp-q-070", "mcp-q-071", "mcp-q-072", "mcp-q-073", "mcp-q-074", "mcp-q-075", "mcp-q-076", "mcp-q-077", "mcp-q-078"],
+  "citations": [{"type": "certificate", "id": "COA-ML-24-0901"}, {"type": "inspection", "id": "INSP-ML-24-0901"}, {"type": "note", "id": "LB-00217"}, {"type": "work_order", "id": "WO-24-0241"}],
+  "answer": "No. The vibration jump on CNC-02 started at the toolholder change, not the steel. The first 6-hour rolling VIB_X alert was at 2024-04-10 21:00, while the machine was still machining SUP-A castings. The first SUP-E steel billet was not consumed until 2024-04-13 22:00, three days later. SUP-E incoming inspections for hardness are all within the material spec. The toolholder (material lot ML-24-0901, SUP-C) was installed on 10 Apr. Its certificate COA-ML-24-0901 shows a balance grade of G6.3, while the required maximum is G2.5, and the receiving/balance/runout inspection was SKIPPED, as recorded in logbook note LB-00217. Open work order WO-24-0241 is tracking the resulting chatter and roundness issue."
+}

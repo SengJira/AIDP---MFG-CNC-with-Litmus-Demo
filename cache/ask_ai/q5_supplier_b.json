@@ -1,0 +1,19 @@
+{
+  "question": "Is a supplier material linked to the CNC-01 vibration?",
+  "sql": [
+    "SELECT machine_id, main_supplier_id, COUNT(*) AS lots, AVG(avg_vib_x) AS avg_vib_x FROM js_manuf_ice.cnc_analytics.lot_context WHERE machine_id='CNC-01' AND start_ts < TIMESTAMP '2024-02-06 06:00:00' AND main_supplier_id IN ('SUP-A','SUP-B') GROUP BY machine_id, main_supplier_id",
+    "SELECT machine_id, main_supplier_id, COUNT(*) AS lots, AVG(avg_vib_x) AS avg_vib_x FROM js_manuf_ice.cnc_analytics.lot_context WHERE machine_id='CNC-01' AND start_ts >= TIMESTAMP '2024-02-06 06:00:00' AND main_supplier_id IN ('SUP-A','SUP-B') GROUP BY machine_id, main_supplier_id",
+    "SELECT AVG(avg_vib_x) FROM js_manuf_ice.cnc_analytics.lot_context WHERE machine_id='CNC-01' AND main_supplier_id='SUP-A' AND start_ts >= TIMESTAMP '2024-01-01 00:00:00' AND end_ts < TIMESTAMP '2024-01-15 00:00:00'",
+    "SELECT AVG(avg_vib_x) FROM js_manuf_ice.cnc_analytics.lot_context WHERE machine_id='CNC-01' AND main_supplier_id='SUP-B' AND start_ts >= TIMESTAMP '2024-01-15 00:00:00' AND end_ts < TIMESTAMP '2024-02-03 00:00:00'",
+    "SELECT AVG(avg_vib_x) FROM js_manuf_ice.cnc_analytics.lot_context WHERE machine_id='CNC-01' AND main_supplier_id='SUP-A' AND start_ts >= TIMESTAMP '2024-02-06 00:00:00' AND end_ts < TIMESTAMP '2024-03-24 00:00:00'",
+    "SELECT AVG(avg_vib_x) FROM js_manuf_ice.cnc_analytics.lot_context WHERE machine_id='CNC-01' AND main_supplier_id='SUP-B' AND start_ts >= TIMESTAMP '2024-03-24 00:00:00' AND end_ts < TIMESTAMP '2024-04-01 00:00:00'",
+    "SELECT coa_id, material_lot_id, hardness_hb_claimed, test_location FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_certificates_of_analysis WHERE supplier_id='SUP-B'",
+    "SELECT MIN(measured) AS min_hb, MAX(measured) AS max_hb FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_incoming_inspections WHERE material_lot_id IN (SELECT material_lot_id FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_lots WHERE supplier_id='SUP-B') AND (characteristic='HARDNESS' OR characteristic='HARDNESS_HB') AND result != 'SKIPPED'",
+    "SELECT scar_id, supplier_id, material_lot_ids, cost_claim_usd, root_cause_8d FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_scar WHERE scar_id='SCAR-24-003'",
+    "SELECT note_id, text FROM cnc-demo-shift-logbook WHERE note_id='LB-00220'",
+    "SELECT wo_id, problem, status FROM js_manuf_ice.cnc_cmms.work_orders WHERE wo_id='WO-24-0117'"
+  ],
+  "mcp_query_ids": ["mcp-q-050", "mcp-q-051", "mcp-q-052", "mcp-q-053", "mcp-q-054", "mcp-q-055", "mcp-q-056", "mcp-q-057", "mcp-q-058", "mcp-q-059", "mcp-q-060"],
+  "citations": [{"type": "certificate", "id": "COA-ML-24-0007"}, {"type": "inspection", "id": "AUDIT-SUP-B-03FEB"}, {"type": "scar", "id": "SCAR-24-003"}, {"type": "note", "id": "LB-00220"}, {"type": "work_order", "id": "WO-24-0117"}],
+  "answer": "Yes. Lot genealogy links the CNC-01 vibration to second-source supplier SUP-B castings. For 1-15 Jan, SUP-A lots averaged 1.62 mm/s VIB_X, while SUP-B lots from 15 Jan to 3 Feb averaged 2.87 mm/s. After the bearing replacement on 6 Feb, SUP-A lots through 24 Mar averaged 1.63 mm/s, but the SUP-B trial lots that returned on 24 Mar averaged 1.98 mm/s, proving the vibration repeated with a new bearing. SUP-B certificates of analysis, such as COA-ML-24-0007, claimed hardness HB 211-212 measured on a separate test bar, while the audit of the actual castings on 3 Feb measured HB 238-261. SCAR-24-003 was opened for this issue with a USD 14,178 cost claim. Logbook note LB-00220 and work order WO-24-0117 confirm the bearing was replaced because of the chatter and roundness problems."
+}

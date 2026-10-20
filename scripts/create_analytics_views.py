@@ -46,6 +46,15 @@ def main():
     # 1. lot_context
     run(cur, f"""
         CREATE TABLE {CATALOG}.{SCHEMA}.lot_context AS
+        WITH main_consumption AS (
+            SELECT
+                lot_id,
+                material_lot_id,
+                raw_material_id,
+                supplier_id,
+                ROW_NUMBER() OVER (PARTITION BY lot_id ORDER BY qty_consumed DESC) AS rn
+            FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_material_consumption
+        )
         SELECT
             l.lot_id,
             l.prod_order_id,
@@ -75,8 +84,13 @@ def main():
             COUNT(CASE WHEN c.characteristic = 'SURFACE_RA' AND c.result = 'FAIL' THEN 1 END) AS surface_fails,
             MAX(n.ncr_id) AS ncr_id,
             m.unit_cost_usd,
-            (l.qty_scrap * m.unit_cost_usd) AS scrap_usd
+            (l.qty_scrap * m.unit_cost_usd) AS scrap_usd,
+            mc.material_lot_id AS main_material_lot_id,
+            mc.supplier_id AS main_supplier_id,
+            mc.raw_material_id
         FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots l
+        LEFT JOIN main_consumption mc
+            ON mc.lot_id = l.lot_id AND mc.rn = 1
         LEFT JOIN {CATALOG}.cnc_historian.sensor_readings s
             ON s.equipment_id = l.machine_id
             AND s.ts >= l.start_ts
@@ -91,7 +105,7 @@ def main():
             l.lot_id, l.prod_order_id, l.machine_id, l.material_id, l.shift_date, l.shift,
             l.start_ts, l.end_ts, l.planned_production_min, l.run_min, l.unplanned_downtime_min,
             l.qty_produced, l.qty_good, l.qty_scrap, l.scrap_bore_dia, l.scrap_roundness, l.scrap_surface_ra,
-            l.oee, m.unit_cost_usd
+            l.oee, m.unit_cost_usd, mc.material_lot_id, mc.supplier_id, mc.raw_material_id
     """, "lot_context")
 
     # 2. cnc_daily_360
@@ -174,7 +188,143 @@ def main():
             ON t.machine_id = wd.machine_id AND t.day = wd.day
     """, "cnc_daily_360")
 
-    # 3. event_cost
+    # 3. supplier_lot_impact
+    run(cur, f"""
+        CREATE TABLE {CATALOG}.{SCHEMA}.supplier_lot_impact AS
+        WITH consumed_lots AS (
+            SELECT
+                c.material_lot_id,
+                c.lot_id,
+                c.machine_id,
+                l.start_ts,
+                l.end_ts,
+                l.qty_produced,
+                l.qty_scrap
+            FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_material_consumption c
+            JOIN js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots l ON l.lot_id = c.lot_id
+        ),
+        tel_stats AS (
+            SELECT
+                cl.material_lot_id,
+                AVG(s.VIB_X_MM_S) AS avg_vib_x,
+                AVG(s.MOTOR_CURRENT_A) AS avg_motor_current
+            FROM consumed_lots cl
+            JOIN {CATALOG}.cnc_historian.sensor_readings s
+                ON s.equipment_id = cl.machine_id
+                AND s.ts >= cl.start_ts
+                AND s.ts < cl.end_ts
+                AND s.SPINDLE_RPM > 1000
+            GROUP BY cl.material_lot_id
+        ),
+        coa AS (
+            SELECT
+                material_lot_id,
+                MAX(hardness_hb_claimed) AS hardness_hb_claimed,
+                MAX(balance_grade_claimed) AS balance_grade_claimed,
+                MAX(test_location) AS test_location
+            FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_certificates_of_analysis
+            GROUP BY material_lot_id
+        ),
+        hardness_insp AS (
+            SELECT
+                material_lot_id,
+                MIN(measured) AS measured_hardness_min,
+                AVG(measured) AS measured_hardness_mean,
+                MAX(measured) AS measured_hardness_max,
+                MAX(CASE WHEN result = 'SKIPPED' THEN 1 ELSE 0 END) AS skipped_flag
+            FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_incoming_inspections
+            WHERE characteristic = 'HARDNESS' OR characteristic = 'HARDNESS_HB'
+            GROUP BY material_lot_id
+        ),
+        ncr_counts AS (
+            SELECT lot_id, COUNT(*) AS ncr_count, MAX(ncr_id) AS ncr_id
+            FROM {CATALOG}.cnc_qa.ncr
+            GROUP BY lot_id
+        ),
+        scar_lot AS (
+            SELECT
+                material_lot_id,
+                MAX(scar_id) AS scar_id
+            FROM (
+                SELECT
+                    ml.material_lot_id,
+                    s.scar_id
+                FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_scar s
+                CROSS JOIN UNNEST(SPLIT(s.material_lot_ids, ',')) AS t(x)
+                JOIN js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_lots ml
+                    ON TRIM(t.x) = ml.material_lot_id
+            )
+            GROUP BY material_lot_id
+        )
+        SELECT
+            ml.material_lot_id,
+            ml.material_id,
+            ml.supplier_id,
+            ml.release_decision,
+            coa.hardness_hb_claimed,
+            coa.balance_grade_claimed,
+            coa.test_location,
+            h.measured_hardness_min,
+            h.measured_hardness_mean,
+            h.measured_hardness_max,
+            (h.skipped_flag = 1) AS inspection_skipped,
+            ARRAY_JOIN(ARRAY_AGG(DISTINCT cl.lot_id), ', ') AS mes_lots,
+            ARRAY_JOIN(ARRAY_AGG(DISTINCT cl.machine_id), ', ') AS machines,
+            COALESCE(SUM(cl.qty_produced), 0) AS total_produced,
+            COALESCE(SUM(cl.qty_scrap), 0) AS scrap_parts,
+            COALESCE(SUM(nc.ncr_count), 0) AS ncr_count,
+            t.avg_vib_x,
+            t.avg_motor_current,
+            sl.scar_id
+        FROM js_mysql_mfg.js_mysql_mfg.cnc_sqm_material_lots ml
+        LEFT JOIN consumed_lots cl ON cl.material_lot_id = ml.material_lot_id
+        LEFT JOIN tel_stats t ON t.material_lot_id = ml.material_lot_id
+        LEFT JOIN coa ON coa.material_lot_id = ml.material_lot_id
+        LEFT JOIN hardness_insp h ON h.material_lot_id = ml.material_lot_id
+        LEFT JOIN ncr_counts nc ON nc.lot_id = cl.lot_id
+        LEFT JOIN scar_lot sl ON sl.material_lot_id = ml.material_lot_id
+        GROUP BY
+            ml.material_lot_id, ml.material_id, ml.supplier_id, ml.release_decision,
+            coa.hardness_hb_claimed, coa.balance_grade_claimed, coa.test_location,
+            h.measured_hardness_min, h.measured_hardness_mean, h.measured_hardness_max, h.skipped_flag,
+            t.avg_vib_x, t.avg_motor_current, sl.scar_id
+    """, "supplier_lot_impact")
+
+    # 4. supplier_vibration_summary
+    run(cur, f"""
+        CREATE TABLE {CATALOG}.{SCHEMA}.supplier_vibration_summary AS
+        WITH lot_periods AS (
+            SELECT
+                machine_id,
+                main_supplier_id,
+                start_ts,
+                end_ts,
+                avg_vib_x,
+                CASE
+                    WHEN machine_id = 'CNC-01' AND start_ts < TIMESTAMP '2024-02-06 06:00:00' THEN 'before bearing replacement'
+                    WHEN machine_id = 'CNC-01' AND start_ts >= TIMESTAMP '2024-02-06 06:00:00' THEN 'after bearing replacement'
+                    WHEN machine_id = 'CNC-02' AND start_ts < TIMESTAMP '2024-04-10 14:00:00' THEN 'before toolholder TH-0007'
+                    WHEN machine_id = 'CNC-02' AND start_ts >= TIMESTAMP '2024-04-10 14:00:00' THEN 'after toolholder TH-0007'
+                    ELSE 'other'
+                END AS period
+            FROM {CATALOG}.{SCHEMA}.lot_context
+            WHERE main_supplier_id IS NOT NULL
+        )
+        SELECT
+            machine_id,
+            main_supplier_id,
+            period,
+            MIN(start_ts) AS period_start,
+            MAX(end_ts) AS period_end,
+            COUNT(*) AS lot_count,
+            AVG(avg_vib_x) AS avg_vib_x,
+            (period = 'after bearing replacement') AS bearing_replaced,
+            (period = 'after toolholder TH-0007') AS toolholder_changed
+        FROM lot_periods
+        GROUP BY machine_id, main_supplier_id, period
+    """, "supplier_vibration_summary")
+
+    # 5. event_cost
     run(cur, f"""
         CREATE TABLE {CATALOG}.{SCHEMA}.event_cost AS
         WITH roundness_scrap AS (
@@ -241,7 +391,7 @@ def main():
         ),
         cnc02_imbalance AS (
             SELECT
-                'CNC-02 imbalance' AS event_name,
+                'CNC-02 imbalance (toolholder TH-0007, SUP-C)' AS event_name,
                 'roundness scrap' AS cost_type,
                 SUM(l.scrap_roundness) AS parts,
                 SUM(l.scrap_roundness * m.unit_cost_usd) AS cost_usd,
@@ -249,7 +399,7 @@ def main():
             FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots l
             JOIN js_mysql_mfg.js_mysql_mfg.cnc_erp_materials m ON m.material_id = l.material_id
             WHERE l.machine_id = 'CNC-02'
-              AND l.shift_date >= DATE '2024-04-25'
+              AND l.shift_date >= DATE '2024-04-24'
         )
         SELECT * FROM roundness_scrap
         UNION ALL SELECT * FROM complaint
@@ -260,7 +410,7 @@ def main():
         UNION ALL SELECT * FROM cnc02_imbalance
     """, "event_cost")
 
-    # 4. order_risk
+    # 6. order_risk
     run(cur, f"""
         CREATE TABLE {CATALOG}.{SCHEMA}.order_risk AS
         WITH open_orders AS (
@@ -276,22 +426,36 @@ def main():
             LEFT JOIN js_mysql_mfg.js_mysql_mfg.cnc_mes_production_orders po ON po.so_id = so.so_id
             WHERE so.status = 'OPEN'
         ),
+        daily_good AS (
+            SELECT
+                prod_order_id,
+                shift_date,
+                SUM(qty_good) AS daily_good
+            FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots
+            WHERE qty_good IS NOT NULL
+            GROUP BY prod_order_id, shift_date
+        ),
         recent_rate AS (
             SELECT
-                l.prod_order_id,
+                p.prod_order_id,
                 o.so_id,
                 o.material_id,
                 o.qty,
                 o.qty_shipped,
                 o.due_date,
                 o.remaining_qty,
-                AVG(l.qty_good) AS recent_avg_lot_good,
+                AVG(d.daily_good) AS recent_avg_daily_good,
                 MAX(l.end_ts) AS last_lot_end
             FROM open_orders o
             JOIN js_mysql_mfg.js_mysql_mfg.cnc_mes_production_orders p ON p.so_id = o.so_id
             JOIN js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots l ON l.prod_order_id = p.prod_order_id
+            JOIN (
+                SELECT prod_order_id, shift_date, daily_good,
+                       ROW_NUMBER() OVER (PARTITION BY prod_order_id ORDER BY shift_date DESC) AS rn
+                FROM daily_good
+            ) d ON d.prod_order_id = p.prod_order_id AND d.rn <= 7
             WHERE l.end_ts IS NOT NULL
-            GROUP BY l.prod_order_id, o.so_id, o.material_id, o.qty, o.qty_shipped, o.due_date, o.remaining_qty
+            GROUP BY p.prod_order_id, o.so_id, o.material_id, o.qty, o.qty_shipped, o.due_date, o.remaining_qty
         )
         SELECT
             so_id,
@@ -301,22 +465,25 @@ def main():
             remaining_qty,
             due_date,
             last_lot_end,
-            recent_avg_lot_good,
-            CAST(CEIL(remaining_qty / NULLIF(recent_avg_lot_good, 0)) AS INTEGER) AS est_days_remaining,
-            CAST(DATE_ADD('day', CAST(CEIL(remaining_qty / NULLIF(recent_avg_lot_good, 0)) AS INTEGER), last_lot_end) AS TIMESTAMP) AS projected_finish,
-            CAST(DATE_ADD('day', CAST(CEIL(remaining_qty / NULLIF(recent_avg_lot_good, 0)) AS INTEGER) + 1, last_lot_end) AS TIMESTAMP) AS projected_finish_with_8h_stop,
-            DATE_DIFF('day', CAST(DATE_ADD('day', CAST(CEIL(remaining_qty / NULLIF(recent_avg_lot_good, 0)) AS INTEGER), last_lot_end) AS DATE), due_date) AS slack_days
+            recent_avg_daily_good,
+            CAST(CEIL(remaining_qty / NULLIF(recent_avg_daily_good, 0)) AS INTEGER) AS est_days_remaining,
+            CAST(DATE_ADD('day', CAST(CEIL(remaining_qty / NULLIF(recent_avg_daily_good, 0)) AS INTEGER), last_lot_end) AS TIMESTAMP) AS projected_finish,
+            CAST(DATE_ADD('day', CAST(CEIL(remaining_qty / NULLIF(recent_avg_daily_good, 0)) AS INTEGER) + 1, last_lot_end) AS TIMESTAMP) AS projected_finish_with_8h_stop,
+            DATE_DIFF('day', CAST(DATE_ADD('day', CAST(CEIL(remaining_qty / NULLIF(recent_avg_daily_good, 0)) AS INTEGER), last_lot_end) AS DATE), due_date) AS slack_days
         FROM recent_rate
     """, "order_risk")
 
     # smoke checks
     print("\\nSmoke checks:")
-    for tbl in ["lot_context", "cnc_daily_360", "event_cost", "order_risk"]:
+    for tbl in ["lot_context", "cnc_daily_360", "supplier_lot_impact", "supplier_vibration_summary", "event_cost", "order_risk"]:
         cur.execute(f"SELECT count(*) FROM {CATALOG}.{SCHEMA}.{tbl}")
         print(f"  {tbl}: {cur.fetchone()[0]} rows")
 
     cur.execute(f"SELECT SUM(cost_usd) FROM {CATALOG}.{SCHEMA}.event_cost WHERE event_name = 'bearing wear' AND avoidable_with_early_warning")
     print(f"  Avoidable bearing cost: {cur.fetchone()[0]}")
+
+    cur.execute(f"SELECT SUM(cost_usd) FROM {CATALOG}.{SCHEMA}.event_cost WHERE event_name LIKE 'CNC-02 imbalance%'")
+    print(f"  CNC-02 imbalance scrap cost: {cur.fetchone()[0]}")
 
 
 if __name__ == "__main__":
