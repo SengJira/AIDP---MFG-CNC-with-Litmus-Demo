@@ -1,0 +1,6 @@
+supplier_id,supplier_name,country,commodity,approval_status,incoming_inspection_level,approved_since
+SUP-A,Chao Phraya Castings (fictional),TH,Iron castings,APPROVED,NORMAL,2016-05-01
+SUP-B,Eastern Metal Foundry (fictional),TH,Iron castings,CONDITIONAL_SECOND_SOURCE,REDUCED_COA_BASED,2023-12-04
+SUP-C,Precision Tooling Asia (fictional),MY,Toolholders,APPROVED,REDUCED_COA_BASED,2021-02-15
+SUP-E,Rayong Steel Service (fictional),TH,Steel bar and billet,APPROVED,NORMAL,2018-09-10
+SUP-F,Precision Bearings Distribution (fictional),TH,Bearings (distributor),APPROVED,NORMAL,2019-01-20

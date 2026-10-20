@@ -1,0 +1,8 @@
+material_id,supplier_id,priority,note
+RM-2210,SUP-A,1,Primary
+RM-2210,SUP-B,2,"Second source, conditional until 6 good lots"
+RM-3140,SUP-A,1,Primary
+RM-3140,SUP-B,2,"Second source, conditional until 6 good lots"
+RM-5120,SUP-E,1,Primary
+TH-HSK63-SF,SUP-C,1,Primary
+SP-BRG-7014,SUP-F,1,Distributor

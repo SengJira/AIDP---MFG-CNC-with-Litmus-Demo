@@ -1,0 +1,9 @@
+supplier_id,month,lots_received,lots_nonconforming,ppm_defective,on_time_delivery_pct,rating,comment
+SUP-A,2024-01,3,0,150,86.0,AMBER,Late deliveries in January caused second-source use
+SUP-A,2024-02,6,0,150,86.0,GREEN,
+SUP-A,2024-03,5,0,150,86.0,GREEN,
+SUP-A,2024-04,1,0,150,86.0,GREEN,
+SUP-B,2024-01,5,5,1000000,97.0,RED,
+SUP-B,2024-03,3,0,0,97.0,AMBER,Requalification trial under deviation DEV-24-012; hardness near upper limit
+SUP-C,2024-04,1,0,0,100.0,GREEN,
+SUP-E,2024-04,4,0,90,95.0,GREEN,

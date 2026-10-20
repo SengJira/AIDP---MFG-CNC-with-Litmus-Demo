@@ -1,0 +1,5 @@
+material_id,description,characteristic,lsl,usl,unit,method
+RM-2210,"Valve body casting, ductile iron EN-GJS-500-7",HARDNESS_HB,170.0,230.0,HB,Brinell 10/3000 on casting body
+RM-3140,"Pump housing casting, grey iron EN-GJL-250",HARDNESS_HB,180.0,240.0,HB,Brinell 10/3000 on casting body
+RM-5120,"Manifold billet, steel C45 normalised",HARDNESS_HB,170.0,220.0,HB,Brinell 10/3000
+TH-HSK63-SF,Shrink-fit toolholder HSK-A63,BALANCE_GRADE_G,,2.5,"G (ISO 21940-11) at 25,000 rpm",Balancing machine

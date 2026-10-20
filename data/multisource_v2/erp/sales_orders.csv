@@ -1,0 +1,11 @@
+so_id,customer_id,material_id,qty,unit_price_usd,order_value_usd,order_date,due_date,ship_date,qty_shipped,status,days_late,late_penalty_usd,penalty_terms
+SO-45001,C100245,VB-2210,1600,32.0,51200.0,2023-12-11,2024-01-15,2024-01-15 10:00:00,1600,SHIPPED,0.0,0.0,"0.5% of order value per day late, max 5%"
+SO-45004,C100311,PH-3140,1100,46.0,50600.0,2023-12-23,2024-01-27,2024-01-26 10:00:00,1100,SHIPPED,0.0,0.0,"0.5% of order value per day late, max 5%"
+SO-45012,C100245,VB-2210,2400,32.0,76800.0,2024-01-11,2024-02-15,2024-02-20 10:00:00,2400,SHIPPED,5.0,1920.0,"0.5% of order value per day late, max 5%"
+SO-45019,C100311,PH-3140,1300,46.0,59800.0,2024-01-30,2024-03-05,2024-03-05 10:00:00,1300,SHIPPED,0.0,0.0,"0.5% of order value per day late, max 5%"
+SO-45025,C100245,VB-2210,1800,32.0,57600.0,2024-02-14,2024-03-20,2024-03-19 10:00:00,1800,SHIPPED,0.0,0.0,"0.5% of order value per day late, max 5%"
+SO-45031,C100311,PH-3140,1200,46.0,55200.0,2024-02-26,2024-04-01,2024-04-01 10:00:00,1200,SHIPPED,0.0,0.0,"0.5% of order value per day late, max 5%"
+SO-45038,C100245,VB-2210,2000,32.0,64000.0,2024-03-26,2024-05-10,,0,OPEN,,0.0,"0.5% of order value per day late, max 5%"
+SO-45044,C100311,PH-3140,1400,46.0,64400.0,2024-03-01,2024-05-10,,0,OPEN,,0.0,"0.5% of order value per day late, max 5%"
+SO-45052,C100245,VB-2210,1500,32.0,48000.0,2024-03-11,2024-04-15,2024-04-14 10:00:00,1500,SHIPPED,0.0,0.0,"0.5% of order value per day late, max 5%"
+SO-45060,C100402,MB-5120,1600,72.0,115200.0,2024-04-03,2024-05-08,,0,OPEN,,0.0,"0.5% of order value per day late, max 5%"

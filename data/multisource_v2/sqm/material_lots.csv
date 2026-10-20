@@ -1,0 +1,31 @@
+material_lot_id,material_id,supplier_id,supplier_heat_no,po_id,qty_received,received_ts,qty_remaining,status,release_decision
+ML-24-0001,RM-2210,SUP-A,CPC-2312-65,4500017001,600,2023-12-24 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0002,RM-2210,SUP-A,CPC-2312-89,4500017002,600,2023-12-29 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0003,RM-2210,SUP-A,CPC-2401-79,4500017003,600,2024-01-04 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0004,RM-3140,SUP-A,CPC-2401-30,4500017004,480,2024-01-06 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0005,RM-3140,SUP-B,EMF-2401-14,4500017005,480,2024-01-12 10:00:00,0,CONSUMED,"Released on CoA (reduced inspection, skip-lot)"
+ML-24-0006,RM-3140,SUP-B,EMF-2401-36,4500017006,480,2024-01-12 10:00:00,11,QUARANTINED,"Released on CoA (reduced inspection, skip-lot)"
+ML-24-0007,RM-2210,SUP-B,EMF-2401-35,4500017007,600,2024-01-12 10:00:00,0,CONSUMED,"Released on CoA (reduced inspection, skip-lot)"
+ML-24-0008,RM-2210,SUP-B,EMF-2401-87,4500017008,600,2024-01-12 10:00:00,123,QUARANTINED,"Released on CoA (reduced inspection, skip-lot)"
+ML-24-0009,RM-2210,SUP-A,CPC-2401-10,4500017010,600,2024-01-27 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0010,RM-2210,SUP-A,CPC-2402-83,4500017011,600,2024-02-05 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0011,RM-2210,SUP-A,CPC-2402-80,4500017012,600,2024-02-12 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0012,RM-3140,SUP-A,CPC-2402-51,4500017013,480,2024-02-20 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0013,RM-3140,SUP-A,CPC-2402-36,4500017014,480,2024-02-20 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0014,RM-3140,SUP-A,CPC-2402-34,4500017016,480,2024-02-27 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0015,RM-2210,SUP-A,CPC-2402-32,4500017015,600,2024-02-26 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0016,RM-2210,SUP-A,CPC-2403-49,4500017017,600,2024-03-01 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0017,RM-2210,SUP-A,CPC-2403-54,4500017018,600,2024-03-09 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0018,RM-3140,SUP-A,CPC-2403-59,4500017019,480,2024-03-17 10:00:00,362,IN_STOCK,Released after incoming inspection
+ML-24-0019,RM-3140,SUP-B,EMF-2403-55,4500017020,480,2024-03-21 09:30:00,0,CONSUMED,Released under deviation DEV-24-012: SUP-B requalification trial on CNC-01 after SCAR closure
+ML-24-0020,RM-3140,SUP-B,EMF-2403-98,4500017021,480,2024-03-21 09:30:00,338,IN_STOCK,Released under deviation DEV-24-012: SUP-B requalification trial on CNC-01 after SCAR closure
+ML-24-0021,RM-2210,SUP-B,EMF-2403-81,4500017022,600,2024-03-21 09:30:00,486,IN_STOCK,Released under deviation DEV-24-012: SUP-B requalification trial on CNC-01 after SCAR closure
+ML-24-0022,RM-2210,SUP-A,CPC-2403-72,4500017023,600,2024-03-25 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0023,RM-2210,SUP-A,CPC-2403-40,4500017024,600,2024-03-31 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0024,RM-2210,SUP-A,CPC-2404-51,4500017025,600,2024-04-03 10:00:00,344,IN_STOCK,Released after incoming inspection
+ML-24-0025,RM-5120,SUP-E,RSS-2404-85,4500017027,400,2024-04-09 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0026,RM-5120,SUP-E,RSS-2404-86,4500017028,400,2024-04-15 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0027,RM-5120,SUP-E,RSS-2404-20,4500017029,400,2024-04-17 10:00:00,0,CONSUMED,Released after incoming inspection
+ML-24-0028,RM-5120,SUP-E,RSS-2404-49,4500017030,400,2024-04-25 10:00:00,192,IN_STOCK,Released after incoming inspection
+ML-24-0029,RM-2210,SUP-B,EMF-2401-13,4500017009,600,2024-01-12 10:00:00,600,QUARANTINED,"Released on CoA (reduced inspection, skip-lot)"
+ML-24-0901,TH-HSK63-SF,SUP-C,PTA-SN-24-0007,4500017026,1,2024-04-08 14:20:00,0,IN_USE_CNC-02,Released on certificate; balancing check skipped (balancing machine out for calibration)

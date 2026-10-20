@@ -1,0 +1,2 @@
+complaint_id,customer_id,so_id,material_id,received_date,qty_rejected_at_customer,description,cost_usd,status
+CC-24-001,C100245,SO-45012,VB-2210,2024-02-24,20,Incoming inspection found bore roundness above 5 um on parts from this shipment; parts returned for credit; 8D requested.,868.0,8D_OPEN

@@ -1,0 +1,5 @@
+rate_type,scope,value_usd,description
+MACHINE_HOUR,CNC-01,85.0,USD per machine hour (burden rate)
+MACHINE_HOUR,CNC-02,78.0,USD per machine hour (burden rate)
+TECH_LABOUR_HOUR,MAINT,32.0,USD per technician hour
+COMPLAINT_HANDLING,QA,25.0,"USD per escaped part (sort, freight, admin)"

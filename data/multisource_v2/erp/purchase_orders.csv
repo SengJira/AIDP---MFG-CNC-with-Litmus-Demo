@@ -1,0 +1,34 @@
+po_id,material_id,vendor,qty,unit_price_usd,freight_usd,expedited,order_date,promised_date,received_ts,std_lead_time_days,ref_work_order,note
+4500018821,SP-BRG-7014,Precision Bearings Distribution (fictional),1,2850.0,1180.0,True,2024-01-30 11:20:00,2024-02-05 00:00:00,2024-02-05 16:10:00,7,WO-24-0117,Air freight; no stock on hand
+4500019034,SP-FLT-220,FluidCare Supplies (fictional),6,85.0,0.0,False,2024-02-15 15:00:00,2024-02-19 00:00:00,2024-02-19 09:30:00,3,WO-24-0152,Restock after emergency use
+4500019120,SP-FAN-080,ElectroParts Asia (fictional),2,42.0,0.0,False,2024-02-26 10:00:00,2024-02-28 00:00:00,2024-02-28 14:00:00,2,WO-24-0166,
+4500017001,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2023-12-12 10:00:00,2023-12-24 00:00:00,2023-12-24 10:00:00,10,,
+4500017002,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2023-12-17 10:00:00,2023-12-29 00:00:00,2023-12-29 10:00:00,10,,
+4500017003,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2023-12-23 10:00:00,2024-01-04 00:00:00,2024-01-04 10:00:00,10,,
+4500017004,RM-3140,Chao Phraya Castings (fictional),480,14.2,0.0,False,2023-12-25 10:00:00,2024-01-06 00:00:00,2024-01-06 10:00:00,10,,
+4500017005,RM-3140,Eastern Metal Foundry (fictional),480,14.2,0.0,False,2023-12-31 10:00:00,2024-01-12 00:00:00,2024-01-12 10:00:00,10,,Second source (SUP-A late)
+4500017006,RM-3140,Eastern Metal Foundry (fictional),480,14.2,0.0,False,2023-12-31 10:00:00,2024-01-12 00:00:00,2024-01-12 10:00:00,10,,Second source (SUP-A late)
+4500017007,RM-2210,Eastern Metal Foundry (fictional),600,9.8,0.0,False,2023-12-31 10:00:00,2024-01-12 00:00:00,2024-01-12 10:00:00,10,,Second source (SUP-A late)
+4500017008,RM-2210,Eastern Metal Foundry (fictional),600,9.8,0.0,False,2023-12-31 10:00:00,2024-01-12 00:00:00,2024-01-12 10:00:00,10,,Second source (SUP-A late)
+4500017009,RM-2210,Eastern Metal Foundry (fictional),600,9.8,0.0,False,2023-12-31 10:00:00,2024-01-12 00:00:00,2024-01-12 10:00:00,10,,Second source (SUP-A late)
+4500017010,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-01-15 10:00:00,2024-01-27 00:00:00,2024-01-27 10:00:00,10,,
+4500017011,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-01-24 10:00:00,2024-02-05 00:00:00,2024-02-05 10:00:00,10,,
+4500017012,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-01-31 10:00:00,2024-02-12 00:00:00,2024-02-12 10:00:00,10,,
+4500017013,RM-3140,Chao Phraya Castings (fictional),480,14.2,0.0,False,2024-02-08 10:00:00,2024-02-20 00:00:00,2024-02-20 10:00:00,10,,
+4500017014,RM-3140,Chao Phraya Castings (fictional),480,14.2,0.0,False,2024-02-08 10:00:00,2024-02-20 00:00:00,2024-02-20 10:00:00,10,,
+4500017015,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-02-14 10:00:00,2024-02-26 00:00:00,2024-02-26 10:00:00,10,,
+4500017016,RM-3140,Chao Phraya Castings (fictional),480,14.2,0.0,False,2024-02-15 10:00:00,2024-02-27 00:00:00,2024-02-27 10:00:00,10,,
+4500017017,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-02-18 10:00:00,2024-03-01 00:00:00,2024-03-01 10:00:00,10,,
+4500017018,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-02-26 10:00:00,2024-03-09 00:00:00,2024-03-09 10:00:00,10,,
+4500017019,RM-3140,Chao Phraya Castings (fictional),480,14.2,0.0,False,2024-03-05 10:00:00,2024-03-17 00:00:00,2024-03-17 10:00:00,10,,
+4500017020,RM-3140,Eastern Metal Foundry (fictional),480,14.2,0.0,False,2024-03-09 09:30:00,2024-03-21 00:00:00,2024-03-21 09:30:00,10,,Second source (SUP-A late)
+4500017021,RM-3140,Eastern Metal Foundry (fictional),480,14.2,0.0,False,2024-03-09 09:30:00,2024-03-21 00:00:00,2024-03-21 09:30:00,10,,Second source (SUP-A late)
+4500017022,RM-2210,Eastern Metal Foundry (fictional),600,9.8,0.0,False,2024-03-09 09:30:00,2024-03-21 00:00:00,2024-03-21 09:30:00,10,,Second source (SUP-A late)
+4500017023,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-03-13 10:00:00,2024-03-25 00:00:00,2024-03-25 10:00:00,10,,
+4500017024,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-03-19 10:00:00,2024-03-31 00:00:00,2024-03-31 10:00:00,10,,
+4500017025,RM-2210,Chao Phraya Castings (fictional),600,9.8,0.0,False,2024-03-22 10:00:00,2024-04-03 00:00:00,2024-04-03 10:00:00,10,,
+4500017026,TH-HSK63-SF,Precision Tooling Asia (fictional),1,410.0,0.0,False,2024-03-27 14:20:00,2024-04-08 00:00:00,2024-04-08 14:20:00,14,,
+4500017027,RM-5120,Rayong Steel Service (fictional),400,21.5,0.0,False,2024-03-28 10:00:00,2024-04-09 00:00:00,2024-04-09 10:00:00,7,,
+4500017028,RM-5120,Rayong Steel Service (fictional),400,21.5,0.0,False,2024-04-03 10:00:00,2024-04-15 00:00:00,2024-04-15 10:00:00,7,,
+4500017029,RM-5120,Rayong Steel Service (fictional),400,21.5,0.0,False,2024-04-05 10:00:00,2024-04-17 00:00:00,2024-04-17 10:00:00,7,,
+4500017030,RM-5120,Rayong Steel Service (fictional),400,21.5,0.0,False,2024-04-13 10:00:00,2024-04-25 00:00:00,2024-04-25 10:00:00,7,,

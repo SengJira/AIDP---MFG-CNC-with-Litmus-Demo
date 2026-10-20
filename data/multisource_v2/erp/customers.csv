@@ -1,0 +1,4 @@
+customer_id,customer_name,industry,segment,payment_terms
+C100245,Kestrel Automotive Components (fictional),Automotive,Tier 1,NET45
+C100311,Aurora Hydraulics (fictional),Industrial hydraulics,Key account,NET30
+C100402,Meridian Fluid Power (fictional),Fluid power,Standard,NET30
