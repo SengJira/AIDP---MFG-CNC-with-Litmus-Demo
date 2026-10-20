@@ -137,7 +137,6 @@ def tab_sources():
 
 def tab_360():
     title("360° View")
-    badge("synthetic data")
     df = daily_360()
     if "machine_id" in df.columns:
         machines = sorted(df["machine_id"].unique())
@@ -172,8 +171,8 @@ def tab_360():
         legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
         xaxis=dict(tickangle=-45, nticks=20, tickformat="%b %d"),
     )
-    fig.update_yaxes(title_text="VIB_X mm/s", secondary_y=False)
-    fig.update_yaxes(title_text="scrap parts", secondary_y=True)
+    fig.update_yaxes(title_text="VIB_X mm/s", autorange=True, rangemode="normal", secondary_y=False)
+    fig.update_yaxes(title_text="scrap parts", autorange=True, rangemode="tozero", secondary_y=True)
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(d.sort_values("day"), use_container_width=True)
 
