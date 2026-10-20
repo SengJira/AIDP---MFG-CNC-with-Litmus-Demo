@@ -276,7 +276,7 @@ def tab_supplier():
                 measured_max=("measured", "max"),
                 skipped=("result", lambda x: (x == "SKIPPED").any()),
             ).reset_index()
-            merged = cert.merge(hard_agg, on="material_lot_id", how="inner")
+            merged = cert.drop(columns=["supplier_id"], errors="ignore").merge(hard_agg, on="material_lot_id", how="inner")
             merged = merged.merge(sqm_material_lots()[["material_lot_id", "supplier_id", "material_id"]], on="material_lot_id", how="left")
             merged = merged[["material_lot_id", "supplier_id", "material_id", "hardness_hb_claimed", "measured_min", "measured_max", "skipped"]]
             merged = merged.sort_values("measured_max", ascending=False)
