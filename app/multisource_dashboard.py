@@ -144,15 +144,34 @@ def tab_360():
     else:
         machines = sorted(df["equipment_id"].unique())
     machine = st.selectbox("Machine", machines)
-    d = df[df["machine_id" if "machine_id" in df.columns else "equipment_id"] == machine]
+    d = df[df["machine_id" if "machine_id" in df.columns else "equipment_id"] == machine].copy()
     d["day"] = pd.to_datetime(d["day"])
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(go.Scatter(x=d["day"], y=d["avg_vib_x"], name="VIB_X mm/s", line=dict(color=DELL_BLUE, width=3)), secondary_y=False)
-    fig.add_trace(go.Bar(x=d["day"], y=d["scrap"], name="scrap parts", marker_color="#ff6b6b", opacity=0.6), secondary_y=True)
+    d = d.sort_values("day")
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]], subplot_titles=[f"Daily 360 — {machine}"])
+    fig.add_trace(
+        go.Scatter(x=d["day"], y=d["avg_vib_x"], name="VIB_X mm/s", mode="lines+markers",
+                   line=dict(color=DELL_BLUE, width=3), marker=dict(size=6)),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Bar(x=d["day"], y=d["scrap"], name="scrap parts", marker_color="#ff6b6b", opacity=0.5, width=24*60*60*1000),
+        secondary_y=True,
+    )
     ncr = d[d["ncr_count"] > 0]
-    if not ncr.empty:
-        fig.add_trace(go.Scatter(x=ncr["day"], y=[d["avg_vib_x"].max() * 1.05] * len(ncr), mode="markers", marker=dict(color="red", size=12, symbol="x"), name="NCR opened"), secondary_y=False)
-    fig.update_layout(title_text=f"Daily 360 — {machine}", template="plotly_white", legend=dict(orientation="h"))
+    for day in ncr["day"]:
+        fig.add_vline(x=day, line_color="red", line_dash="dash", line_width=1, opacity=0.6)
+    fig.add_trace(
+        go.Scatter(x=[None], y=[None], mode="lines", line=dict(color="red", dash="dash", width=1), name="NCR opened"),
+        secondary_y=False,
+    )
+    fig.update_layout(
+        height=650,
+        template="plotly_white",
+        hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
+        xaxis=dict(tickangle=-45, nticks=20, tickformat="%b %d"),
+    )
     fig.update_yaxes(title_text="VIB_X mm/s", secondary_y=False)
     fig.update_yaxes(title_text="scrap parts", secondary_y=True)
     st.plotly_chart(fig, use_container_width=True)
