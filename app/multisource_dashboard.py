@@ -132,8 +132,7 @@ def tab_sources():
             st.markdown(f"<h3 style='color:{DELL_BLUE};'>{system}</h3>", unsafe_allow_html=True)
             for tname, fqn, store, cnt in tables:
                 st.metric(tname, f"{cnt:,}")
-                st.caption(f"{store}  
-`{fqn}`")
+                st.caption(f"{store} — `{fqn}`")
 
 
 def tab_360():
