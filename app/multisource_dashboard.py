@@ -263,7 +263,7 @@ def tab_genealogy():
     d = df[df["machine_id"] == machine] if machine != "All" else df
 
     chart = d[d["avg_vib_x"].notna()].copy()
-    if not chart.empty:
+    if not chart.empty and "start_ts" in chart.columns:
         fig = px.scatter(
             chart,
             x="start_ts",
