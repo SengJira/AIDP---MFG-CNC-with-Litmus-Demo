@@ -10,6 +10,7 @@ data/processed/
 # Secrets and local config
 .env
 *.env
+.devin/mcp_config.local.json
 
 # IDE
 .vscode/

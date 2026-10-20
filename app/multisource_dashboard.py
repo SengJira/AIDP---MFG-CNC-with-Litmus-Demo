@@ -99,7 +99,6 @@ def reset_demo():
 
 def tab_sources():
     title("Sources")
-    badge("synthetic data")
     counts = source_counts()
     grouped = {
         "OT Historian": [("Sensor readings", counts["OT Historian"][0], counts["OT Historian"][1], counts["OT Historian"][2])],
@@ -179,7 +178,6 @@ def tab_360():
 
 def tab_impact():
     title("Impact & Cost")
-    badge("synthetic data")
     df = event_cost()
     c1, c2, c3 = st.columns(3)
     avoid = df[df["avoidable_with_early_warning"] == True]["cost_usd"].sum()
@@ -209,7 +207,6 @@ def tab_impact():
 
 def tab_ask():
     title("Ask AI")
-    badge("synthetic data")
     questions = {
         "Why did SO-45012 ship late, and what did it cost?": "q1_so45012",
         "When did any system first show the CNC-01 bearing problem?": "q2_first_bearing",
