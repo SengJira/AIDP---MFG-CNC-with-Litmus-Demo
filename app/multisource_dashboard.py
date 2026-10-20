@@ -109,6 +109,11 @@ def supplier_lot_impact():
 
 
 @st.cache_data(ttl=30)
+def lot_context():
+    return load_table("js_manuf_ice.cnc_analytics.lot_context", "lot_context.parquet")
+
+
+@st.cache_data(ttl=30)
 def sqm_scorecard():
     return load_table("js_mysql_mfg.js_mysql_mfg.cnc_sqm_supplier_scorecard", "sqm_scorecard.parquet")
 
@@ -244,6 +249,56 @@ def tab_360():
     fig.update_yaxes(title_text="scrap parts", autorange=True, rangemode="tozero", secondary_y=True)
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(d.sort_values("day"), use_container_width=True)
+
+
+def tab_genealogy():
+    title("Lot Genealogy — Material & Supplier to Machine")
+    df = lot_context()
+    if df.empty:
+        st.warning("No lot context data available.")
+        return
+
+    machines = sorted(df["machine_id"].dropna().unique())
+    machine = st.selectbox("Machine", ["All"] + list(machines))
+    d = df[df["machine_id"] == machine] if machine != "All" else df
+
+    chart = d[d["avg_vib_x"].notna()].copy()
+    if not chart.empty:
+        fig = px.scatter(
+            chart,
+            x="start_ts",
+            y="avg_vib_x",
+            color="main_supplier_id",
+            size="qty_produced",
+            hover_data=["lot_id", "material_id", "main_material_lot_id", "raw_material_id", "qty_scrap", "scrap_usd"],
+            title=f"Vibration by supplier lot ({machine})",
+            color_discrete_sequence=px.colors.qualitative.Safe,
+        )
+        fig.update_layout(template="plotly_white", height=500)
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown(f"<h3 style='color:{DELL_NAVY};'>MES lots and the supplier material they consumed</h3>", unsafe_allow_html=True)
+    cols = ["lot_id", "machine_id", "shift_date", "material_id", "main_material_lot_id",
+            "main_supplier_id", "raw_material_id", "qty_produced", "qty_scrap",
+            "avg_vib_x", "scrap_usd", "ncr_id", "start_ts"]
+    present = [c for c in cols if c in d.columns]
+    if "start_ts" in d.columns:
+        d = d.sort_values("start_ts")
+    st.dataframe(d[present], use_container_width=True)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("Lots by supplier")
+        st.dataframe(
+            d.groupby("main_supplier_id")["lot_id"].count().reset_index(name="lot_count").sort_values("lot_count", ascending=False),
+            use_container_width=True,
+        )
+    with c2:
+        st.markdown("Mean VIB_X by supplier")
+        st.dataframe(
+            d.groupby("main_supplier_id")["avg_vib_x"].mean().reset_index(name="avg_vib_x").sort_values("avg_vib_x", ascending=False),
+            use_container_width=True,
+        )
 
 
 def tab_supplier():
@@ -388,11 +443,13 @@ def main():
     st.sidebar.markdown("---")
     if st.sidebar.button("Reset demo"):
         reset_demo()
-    tab = st.sidebar.radio("Tab", ["Sources", "360°", "Supplier", "Impact", "Ask AI"])
+    tab = st.sidebar.radio("Tab", ["Sources", "360°", "Genealogy", "Supplier", "Impact", "Ask AI"])
     if tab == "Sources":
         tab_sources()
     elif tab == "360°":
         tab_360()
+    elif tab == "Genealogy":
+        tab_genealogy()
     elif tab == "Supplier":
         tab_supplier()
     elif tab == "Impact":
