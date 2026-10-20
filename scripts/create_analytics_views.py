@@ -149,8 +149,8 @@ def main():
             GROUP BY asset_id, d
         )
         SELECT
-            COALESCE(t.machine_id, l.machine_id, s.machine_id, nc.machine_id, d.machine_id, wd.machine_id) AS machine_id,
-            COALESCE(t.day, l.day, s.day, nc.day, d.day, wd.day) AS day,
+            t.machine_id,
+            t.day,
             t.avg_vib_x,
             l.oee,
             l.scrap_qty AS scrap,
@@ -162,15 +162,15 @@ def main():
             COALESCE(d.unplanned_downtime_min, 0) AS unplanned_downtime_min,
             COALESCE(d.planned_downtime_min, 0) AS planned_downtime_min
         FROM telemetry_day t
-        FULL OUTER JOIN lot_day l
+        LEFT JOIN lot_day l
             ON t.machine_id = l.machine_id AND t.day = l.day
-        FULL OUTER JOIN scrap_usd_day s
+        LEFT JOIN scrap_usd_day s
             ON t.machine_id = s.machine_id AND t.day = s.day
-        FULL OUTER JOIN ncr_day nc
+        LEFT JOIN ncr_day nc
             ON t.machine_id = nc.machine_id AND t.day = nc.day
-        FULL OUTER JOIN downtime_day d
+        LEFT JOIN downtime_day d
             ON t.machine_id = d.machine_id AND t.day = d.day
-        FULL OUTER JOIN wo_day wd
+        LEFT JOIN wo_day wd
             ON t.machine_id = wd.machine_id AND t.day = wd.day
     """, "cnc_daily_360")
 
