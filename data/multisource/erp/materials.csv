@@ -1,0 +1,7 @@
+material_id,description,material_type,unit_cost_usd,unit_price_usd,ideal_cycle_min,bore_nominal_mm,std_lead_time_days
+VB-2210,"Valve body, 25 mm main bore",FINISHED_GOOD,18.4,32.0,9.5,25.0,
+PH-3140,"Pump housing, 40 mm bore",FINISHED_GOOD,27.5,46.0,12.0,40.0,
+MB-5120,"Manifold block, 32 mm bore",FINISHED_GOOD,41.0,72.0,14.0,32.0,
+SP-BRG-7014,"Spindle bearing set, drive end",SPARE_PART,2850.0,,,,7.0
+SP-FLT-220,Coolant filter cartridge,SPARE_PART,85.0,,,,3.0
+SP-FAN-080,Electrical cabinet fan 80 mm,SPARE_PART,42.0,,,,2.0

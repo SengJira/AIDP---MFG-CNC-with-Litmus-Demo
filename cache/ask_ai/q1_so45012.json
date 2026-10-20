@@ -1,0 +1,11 @@
+{
+  "question": "Why did SO-45012 ship late, and what did it cost?",
+  "sql": [
+    "SELECT so_id, days_late, late_penalty_usd FROM js_mysql_mfg.js_mysql_mfg.cnc_erp_sales_orders WHERE so_id='SO-45012'",
+    "SELECT SUM(scrap_roundness) AS parts, SUM(scrap_roundness * m.unit_cost_usd) AS cost_usd FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots l JOIN js_mysql_mfg.js_mysql_mfg.cnc_erp_materials m ON m.material_id=l.material_id WHERE l.machine_id='CNC-01' AND l.shift_date BETWEEN DATE '2024-01-28' AND DATE '2024-02-04'",
+    "SELECT COUNT(*), SUM(qty_scrapped) FROM js_manuf_ice.cnc_qa.ncr WHERE machine_id='CNC-01' AND characteristic='BORE_DIA'"
+  ],
+  "mcp_query_ids": ["mcp-q-001", "mcp-q-002", "mcp-q-003"],
+  "citations": [{"type": "work_order", "id": "WO-24-0117"}, {"type": "ncr", "id": "NCR-24-0001"}, {"type": "note", "id": "LB-00209"}],
+  "answer": "SO-45012 shipped five days late because a bearing-wear event on CNC-01 created 400 roundness-scrap parts between 28 Jan and 4 Feb, followed by a coolant-restriction event that added 217 bore-diameter scrap parts. The scrap cost was USD 7,360 for roundness and USD 3,992.80 for bore diameter, but the late penalty charged to the customer order was USD 1,920.00. WO-24-0117 confirms the bearing replacement and QA NCR-24-0001 marks the first roundness reject."
+}

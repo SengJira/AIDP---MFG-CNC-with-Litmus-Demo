@@ -1,0 +1,12 @@
+{
+  "question": "Was the motor-current alarm on 20–25 Feb a real problem?",
+  "sql": [
+    "SELECT DATE_TRUNC('day', ts) AS day, AVG(motor_current_a) AS motor_current FROM js_manuf_ice.cnc_historian.sensor_readings WHERE equipment_id='CNC-01' AND ts BETWEEN TIMESTAMP '2024-02-20 00:00:00' AND TIMESTAMP '2024-02-25 23:59:59' GROUP BY DATE_TRUNC('day', ts) ORDER BY day",
+    "SELECT COUNT(*), SUM(qty_scrapped) FROM js_manuf_ice.cnc_qa.ncr WHERE machine_id='CNC-01' AND opened_ts BETWEEN TIMESTAMP '2024-02-19 00:00:00' AND TIMESTAMP '2024-02-26 23:59:59'",
+    "SELECT cmm_id, measured_value, lower_limit, upper_limit FROM js_manuf_ice.cnc_qa.cmm_inspections WHERE machine_id='CNC-01' AND ts BETWEEN TIMESTAMP '2024-02-20 00:00:00' AND TIMESTAMP '2024-02-25 23:59:59' AND characteristic='ROUNDNESS'",
+    "SELECT wo_id, cause, remedy FROM js_manuf_ice.cnc_cmms.work_orders WHERE asset_id='CNC-01' AND wo_id='WO-24-0166'"
+  ],
+  "mcp_query_ids": ["mcp-q-020", "mcp-q-021", "mcp-q-022", "mcp-q-023"],
+  "citations": [{"type": "work_order", "id": "WO-24-0166"}],
+  "answer": "No quality impact. The motor-current alarm was not a real process problem. CNC-01 made zero scrap parts between 19 Feb and 26 Feb, and all CMM roundness checks were in specification. CMMS WO-24-0166 found the root cause: a failed electrical cabinet fan caused the current transmitter to thermally drift. The remedy was to replace fan SP-FAN-080 and recalibrate the transmitter (offset -3.4 A)."
+}

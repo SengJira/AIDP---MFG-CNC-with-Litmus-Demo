@@ -1,0 +1,28 @@
+[
+  {
+    "asset_id": "CNC-01",
+    "description": "Horizontal machining center, 630 mm pallet",
+    "manufacturer": "Generic HMC (fictional)",
+    "install_year": 2019,
+    "location": "PLANT-1000 / Line SP-1 / Cell 1",
+    "criticality": "A",
+    "spindle": {
+      "max_rpm": 12000,
+      "taper": "HSK-A63",
+      "de_bearing_last_replaced": "2022-03-14"
+    }
+  },
+  {
+    "asset_id": "CNC-02",
+    "description": "Horizontal machining center, 630 mm pallet",
+    "manufacturer": "Generic HMC (fictional)",
+    "install_year": 2014,
+    "location": "PLANT-1000 / Line SP-1 / Cell 2",
+    "criticality": "A",
+    "spindle": {
+      "max_rpm": 12000,
+      "taper": "HSK-A63",
+      "de_bearing_last_replaced": "2023-10-09"
+    }
+  }
+]

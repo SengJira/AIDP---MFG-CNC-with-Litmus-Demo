@@ -1,0 +1,14 @@
+{
+  "question": "Should we stop CNC-02 for 8 hours this week, and will SO-45060 still ship on time?",
+  "sql": [
+    "SELECT so_id, qty, qty_shipped, due_date FROM js_mysql_mfg.js_mysql_mfg.cnc_erp_sales_orders WHERE so_id='SO-45060'",
+    "SELECT po.prod_order_id, po.qty, po.qty_good FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_production_orders po WHERE po.so_id='SO-45060'",
+    "SELECT AVG(qty_good) AS avg_good FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots WHERE prod_order_id=(SELECT prod_order_id FROM js_mysql_mfg.js_mysql_mfg.cnc_mes_production_orders WHERE so_id='SO-45060') AND end_ts IS NOT NULL",
+    "SELECT material_id, qty_on_hand FROM js_mysql_mfg.js_mysql_mfg.cnc_erp_spare_parts_stock WHERE material_id='SP-BRG-7014' ORDER BY as_of_date DESC LIMIT 1",
+    "SELECT note_id, text FROM cnc-demo-shift-logbook WHERE note_id='LB-00217'",
+    "SELECT wo_id, status, notes FROM js_manuf_ice.cnc_cmms.work_orders WHERE asset_id='CNC-02' AND status='OPEN'"
+  ],
+  "mcp_query_ids": ["mcp-q-030", "mcp-q-031", "mcp-q-032", "mcp-q-033", "mcp-q-034", "mcp-q-035"],
+  "citations": [{"type": "note", "id": "LB-00217"}, {"type": "work_order", "id": "WO-24-0241"}, {"type": "sales_order", "id": "SO-45060"}],
+  "answer": "Yes, stop CNC-02 for eight hours this week. SO-45060 has about 219 parts remaining (1600 ordered, 1381 good parts already produced) at roughly 80 good parts per day, so completion is around 4 May against an 8 May due date, leaving a small buffer. Logbook note LB-00217 shows the operator changed toolholder HSK #7 on 10 Apr and skipped the runout check; that should be re-checked. Spare part SP-BRG-7014 currently shows 0 stock with reorder point 1, so order one before the stop. Open WO-24-0241 is already tracking the chatter issue."
+}

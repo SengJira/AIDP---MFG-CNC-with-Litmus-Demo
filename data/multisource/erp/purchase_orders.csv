@@ -1,0 +1,4 @@
+po_id,material_id,vendor,qty,unit_price_usd,freight_usd,expedited,order_date,promised_date,received_ts,std_lead_time_days,ref_work_order,note
+4500018821,SP-BRG-7014,Precision Bearings Distribution (fictional),1,2850.0,1180.0,True,2024-01-30 11:20:00,2024-02-05 00:00:00,2024-02-05 16:10:00,7,WO-24-0117,Air freight; no stock on hand
+4500019034,SP-FLT-220,FluidCare Supplies (fictional),6,85.0,0.0,False,2024-02-15 15:00:00,2024-02-19 00:00:00,2024-02-19 09:30:00,3,WO-24-0152,Restock after emergency use
+4500019120,SP-FAN-080,ElectroParts Asia (fictional),2,42.0,0.0,False,2024-02-26 10:00:00,2024-02-28 00:00:00,2024-02-28 14:00:00,2,WO-24-0166,

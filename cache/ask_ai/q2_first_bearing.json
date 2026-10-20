@@ -1,0 +1,12 @@
+{
+  "question": "When did any system first show the CNC-01 bearing problem?",
+  "sql": [
+    "SELECT DATE_TRUNC('day', ts) AS day, AVG(vib_x_mm_s) AS vib_x FROM js_manuf_ice.cnc_historian.sensor_readings WHERE equipment_id='CNC-01' AND ts BETWEEN TIMESTAMP '2024-01-15 00:00:00' AND TIMESTAMP '2024-01-20 00:00:00' GROUP BY DATE_TRUNC('day', ts) ORDER BY day",
+    "SELECT note_id, ts, text FROM cnc-demo-shift-logbook WHERE machine_id='CNC-01' AND ts BETWEEN TIMESTAMP '2024-01-17 00:00:00' AND TIMESTAMP '2024-01-25 00:00:00' ORDER BY ts",
+    "SELECT ncr_id, opened_ts, characteristic FROM js_manuf_ice.cnc_qa.ncr WHERE machine_id='CNC-01' ORDER BY opened_ts LIMIT 1",
+    "SELECT wo_id, created_ts, problem FROM js_manuf_ice.cnc_cmms.work_orders WHERE asset_id='CNC-01' AND failure_code='BRG-WEAR' ORDER BY created_ts LIMIT 1"
+  ],
+  "mcp_query_ids": ["mcp-q-010", "mcp-q-011", "mcp-q-012", "mcp-q-013"],
+  "citations": [{"type": "historian", "id": "2024-01-17 12:00"}, {"type": "note", "id": "LB-00208"}, {"type": "note", "id": "LB-00209"}, {"type": "ncr", "id": "NCR-24-0001"}, {"type": "work_order", "id": "WO-24-0117"}],
+  "answer": "Historian: 2024-01-17 at 12:00, when the six-hour rolling mean of VIB_X first exceeded the baseline plus 3σ. Shift logbook: LB-00208 on 2024-01-19 records a faint high-pitched whine, and LB-00209 on 2024-01-24 notes the whine is louder. QA: 2024-01-28 (NCR-24-0001) was the first roundness reject. CMMS: WO-24-0117 was raised on 2024-01-30 for the bearing."
+}

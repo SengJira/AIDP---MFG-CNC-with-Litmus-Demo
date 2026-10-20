@@ -1,0 +1,6 @@
+material_id,plant,qty_on_hand,reorder_point,as_of_date,note
+SP-BRG-7014,PLANT-1000,0,1,2024-01-01,Last unit used Oct 2023 (CNC-02)
+SP-BRG-7014,PLANT-1000,0,1,2024-04-01,Expedited unit consumed by WO-24-0117
+SP-FLT-220,PLANT-1000,1,4,2024-01-01,
+SP-FLT-220,PLANT-1000,5,4,2024-04-01,
+SP-FAN-080,PLANT-1000,1,2,2024-04-01,

@@ -1,140 +1,129 @@
-# CNC Spindle Health — AIDP Environment Discovery
+# Spindle to Customer — AIDP Environment Discovery
 
-Date: 2026-10-15
-Scope: Non-destructive reachability and capability check of the Dell AIDP lab environment for the `cnc-demo` / `smart_mfg` scope.
+Date: 2026-10-20 03:45:11 UTC
+Scope: Non-destructive reachability and inventory for the multi-source CNC demo.
+TLS: verification disabled for this lab demo only (`verify=False` / `--insecure`).
 
----
+## 1. ObjectScale / S3
 
-## 1. Storage Engine — ObjectScale / S3
+Reachable: yes (1 buckets)
+Buckets: js-demo
+cnc-demo/ prefix objects seen: 20
+Write permission on s3://js-demo/cnc-demo/: yes
 
-| Item | Value |
-|---|---|
-| Endpoint | `http://172.18.11.31:9020` |
-| Reachable | Yes (HTTP 200 from `list_buckets`) |
-| Credentials location | Environment variables `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`. Never commit. |
-| Existing bucket | `js-demo` |
-| Demo prefix | `s3://js-demo/cnc-demo/raw/` |
+## 2. Starburst / Trino
 
-Observations:
-- Raw CSVs (`CNC01`, `CNC01 Month3`, `CNC02`) are uploaded under `s3://js-demo/cnc-demo/raw/`.
+Reachable: yes
+Catalogs: js_financial_ice, js_manuf_ice, js_mysql_customer360, system, tpch
+js_manuf_ice schemas: information_schema, schema_discovery, smart_mfg, system
+  js_manuf_ice.information_schema: applicable_roles, columns, enabled_roles, roles, schemata, table_privileges, tables, views
+  js_manuf_ice.schema_discovery: discovery, shallow_discovery
+  js_manuf_ice.smart_mfg: anomaly_events, anomaly_scores, equipment, label_bank, labels, sensor_readings
+  js_manuf_ice.system: iceberg_tables, materialized_view_refreshes
+js_mysql_customer360 schemas: customer360, information_schema, performance_schema
+  js_mysql_customer360.customer360: customers
+  js_mysql_customer360.information_schema: applicable_roles, columns, enabled_roles, roles, schemata, table_privileges, tables, views
+  js_mysql_customer360.performance_schema: (empty)
 
-## 2. Data Analytics Engine — Starburst / Trino + MCP
+## 3. DDAE MCP Server
 
-### 2a. Trino SQL
+Endpoint: https://ddae.lab9bgp.com/mcp
+MCP auth header is configured from TRINO credentials (Basic base64).
+Read-only SQL tool will be discovered in Step 4 (Ask AI).
+For Step 0 inventory the Trino client was used to list catalogs, schemas, and tables.
 
-| Item | Value |
-|---|---|
-| Web UI / Gateway | `https://ddae.lab9bgp.com/` |
-| Python client | `trino` installed |
-| Connection | `trino.dbapi.connect(host='ddae.lab9bgp.com', port=443, http_scheme='https', auth=BasicAuthentication(...), catalog='js_manuf_ice', verify=False)` |
-| Credentials location | `TRINO_USER` / `TRINO_PASS` (never commit) |
+## 4. Data Processing Engine (DPE) CLI
 
-Discovered catalogs:
-- `js_financial_ice`
-- `js_manuf_ice`  ← manufacturing Iceberg catalog
-- `js_mysql_customer360`
-- `system`
-- `tpch`
+CLI path: /home/betalab/jirawut/dell-data-processing-engine/bin/dell-data-processing-engine
+--help exit code: 0
+```
+Usage: dell-data-processing-engine [-h] [--insecure] [--format=<displayMode>]
+                                   [--log-level=<logLevel>]
+                                   [--logLevel=<messagingMode>] [-p=<profile>]
+                                   [--cert=<path>]... [--keystore=<path:
+                                   password>]... [COMMAND]
+Use this application to manage Spark
+  -h, --help                Show usage help and exit. Note: must be the last
+                              argument.
 
-Created:
-- Schema: `js_manuf_ice.smart_mfg` with explicit S3 location `s3://js-demo/cnc-demo/warehouse/smart_mfg`.
-- Tables: `sensor_readings`, `equipment`, `anomaly_scores`, `anomaly_events`, `labels`, `label_bank`.
-- Verified counts: `CNC-01` 2,184 rows, `CNC-02` 720 rows.
+Global Options
+  -p, --profile=<profile>   Configuration profile to use (default profile is
+                              used if not specified)
+      --log-level=<logLevel>
+                            Change the output/logging level: standard, debug
+      --cert=<path>         Path to an X509 client certificate (PEM format) or
+                              a directory of X509 client certificates
+      --keystore=<path:password>
+                            Path to a KeyStore containing client certificates
+                              and the KeyStore password
+      --insecure            Skip SSL certificate validation. WARNING! This
+                              should only be used for testing.
+      --logLevel=<messagingMode>
+                            DEPRECATED - use --log-level instead
+      --format=<displayMode>
+                            For commands that produce a result, changes how the
+                              result is formatted: table, simple, json,
+                              prettyJson, raw
+Commands:
+  config                  Commands to configure this application
+  login                   Login, start a new session, and set/change the
+                            default profile
+  login-with-credentials  Login, start a new session, and set/change the
+                            default profile using your username and password
+  submit                  Emulation of Spark's spark-submit script
+  notebook                Notebook management
+  instance                Instance management
+  uploads                 Commands to manage file uploads and secrets
+  profile                 Commands to get or set the default profile
+  version                 Show the current version
+  admin                   Commands that require an admin role
 
-### 2b. MCP Server — `https://ddae.lab9bgp.com/mcp`
+```
+version subcommand exit code: 0
+version stdout: 250-476-e-RC2
 
-| Item | Value |
-|---|---|
-| Server name | `Starburst Enterprise MCP Server` v1.0.0 |
-| Transport | Streamable HTTP (stateless authenticated endpoint) |
-| Auth | HTTP Basic Auth with Trino credentials |
-| Required headers | `Accept: text/event-stream, application/json`; `Content-Type: application/json`; `mcp-session-id: <uuid>` after initialize |
-| Credentials location | `AIDP_MCP_AUTH` (Basic base64) or `AIDP_MCP_USER`/`AIDP_MCP_PASS` (never commit) |
-| Client package | `mcp` (official Python SDK) installed |
+## 5. Elasticsearch / Data Search Engine
 
-Discovered tools:
+Reachable: yes
+Cluster name: ddse-0
+Version: 9.3.0
+Cluster status: green
+Existing indices: 39
+Trained models: none found
+ELSER/semantic_text availability: will be tested by creating a temporary index during Step 1 logbook indexing.
+Index-creation privilege: yes
 
-1. **`queryReadOnly`**
-   - Input schema: `{"query": <string>}`
-   - Description: read-only Trino SQL executor; accepts `SELECT`, `SHOW`, `DESCRIBE`.
-   - Tested: `SHOW CATALOGS` returned the expected catalogs and `SELECT ... FROM smart_mfg.sensor_readings` returns counts.
+## 6. Input data
 
-2. **`searchDataProducts`**
-   - Input schema: `{"query": <string>}`
-   - Description: search available Starburst Data Products.
+Expected input: data/multisource/ from aidp_multisource_data.zip
+Status: unzipped.
+Files present:
+- historian/: 3 telemetry CSVs
+- mes/: production_orders.csv, production_lots.csv, downtime_events.csv
+- erp/: customers.csv, materials.csv, sales_orders.csv, purchase_orders.csv, spare_parts_stock.csv, cost_rates.csv
+- qa/: cmm_inspections.csv, ncr.csv, customer_complaints.csv
+- cmms/: assets.json, work_orders.jsonl
+- logbook/: shift_logbook.jsonl
+- generate.py, README.md
+README.md read; join keys and embedded timeline captured.
 
-## 3. Data Processing Engine — Spark / DPE
+## 7. Summary and plan
 
-| Item | Value |
-|---|---|
-| API endpoint | `https://ddpe-http.ddpe.lab9bgp.com` |
-| CLI binary | `~/jirawut/dell-data-processing-engine/bin/dell-data-processing-engine` (v`250-476-e-RC2`) |
-| Java requirement | Requires Java 22+ (class file version 66.0); the default system Java 21 fails |
-| Working Java home | `/home/betalab/workspace/tk/openjdk/jdk-27` |
-| Credentials location | Same as Trino, via `dell-data-processing-engine config set` |
+What works:
+- ObjectScale (S3): reachable, js-demo bucket present, cnc-demo/ prefix writable.
+- Starburst/Trino: reachable; catalogs, schemas and tables listed above.
+- DPE CLI: present, help/version output recorded above.
+- Elasticsearch: reachable, cluster healthy, index-creation privilege confirmed.
+- Input data: unzipped and ready.
 
-Observations:
-- The DPE CLI is present and works with Java 27.
-- The demo uses local PySpark as a ready-to-run fallback.
+TLS note: Python clients and DPE CLI use `--insecure` / `verify=False` for this lab demo only.
 
-## 4. Data Search Engine — Elasticsearch
+Proposed implementation plan:
+1. Step 1: land telemetry/QA/CMMS in Iceberg, MES/ERP in MySQL via staging, logbook in Elasticsearch.
+2. Step 2: create federated views lot_context, cnc_daily_360, event_cost, order_risk in js_manuf_ice.cnc_analytics.
+3. Step 3: optional data product.
+4. Step 4: build MCP Ask AI agent with read-only SQL and logbook search; cache answers.
+5. Step 5: Streamlit dashboard Sources/360/Impact/Ask AI.
+6. Step 6: acceptance tests and screenshots.
 
-| Item | Value |
-|---|---|
-| Kibana URL | `https://kibana-https.ddse.lab9bgp.com/app/home` |
-| Elasticsearch URL | `https://elasticsearch-https.ddse.lab9bgp.com` |
-| Reachable | Yes (HTTP 200 with API key) |
-| Version | `9.3.0` |
-| Credentials location | `ELASTIC_ENDPOINT` / `ELASTIC_API_KEY` environment variables (never commit) |
-| Python client | `elasticsearch` installed |
-
-Observations:
-- Basic auth with the Trino-style username/password returns HTTP 401; the API key is required.
-- `scripts/index_knowledge.py` will index the `knowledge/` markdown docs when the Elastic env vars are set.
-
-## 5. Ask AI / LLM Endpoint
-
-| Item | Value |
-|---|---|
-| Lab OpenAI-compatible endpoint | Not provided |
-| Status | No LLM base available |
-
-Decision: no Python Ask AI agent is built. The NL-to-SQL demo is delivered via the Devin Ask panel with the AIDP Analytics MCP Server.
-
-## 6. Local Tooling
-
-| Tool | Status |
-|---|---|
-| `python3` | 3.11.9 |
-| `pip` | 26.2.1 (user site) |
-| `make` | present |
-| `git` | present, not yet initialized as a repo |
-| `docker` | 27.5.1; `docker compose` not installed locally |
-| Java 27 | `/home/betalab/workspace/tk/openjdk/jdk-27/bin/java` |
-| `streamlit` | installed |
-| `plotly` | installed |
-| `pyspark` | installed |
-| `pandas` / `numpy` | installed |
-| `scikit-learn` | installed |
-| `scipy` | installed |
-| `pyarrow` | installed |
-| `boto3` | installed |
-| `trino` | installed |
-| `elasticsearch` | installed |
-| `pytest` | installed |
-| `mcp` | installed |
-
-## 7. Datasets
-
-| File | Rows | Notes |
-|---|---|---|
-| `data/raw/CNC01_SpindleLine_60days_hourly.csv` | 1,440 | 2024-01-01 00:00 to 2024-02-29 23:00 |
-| `data/raw/CNC01_SpindleLine_Month3_hourly.csv` | 744 | Generated, clean then smooth rise from 2024-03-25 |
-| `data/raw/CNC02_SpindleLine_30days_hourly.csv` | 720 | Generated, 15–20% higher baseline, smooth rise from 2024-04-11 |
-
-## 8. Proposed & Implemented Fallbacks
-
-- **Offline mode (`OFFLINE_MODE=1`)**: serve data from generated Parquet files and cached knowledge JSON with no cluster calls.
-- **Local PySpark** for the detection job until a DPE cluster submission is wired in.
-- **Local TF-IDF knowledge index** (`data/processed/knowledge_index.json`) for offline search; Elasticsearch upload when `ELASTIC_ENDPOINT` is set.
-- **Static Ask AI tab** in the Streamlit dashboard with the three scripted questions, SQL and citations.
+STOPPED after Step 0 — awaiting approval to begin Step 1.

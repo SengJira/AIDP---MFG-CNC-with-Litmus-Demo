@@ -1,0 +1,77 @@
+{
+  "OT Historian": {
+    "fqn": "js_manuf_ice.cnc_historian.sensor_readings",
+    "store": "Iceberg",
+    "count": 2904
+  },
+  "QA CMM": {
+    "fqn": "js_manuf_ice.cnc_qa.cmm_inspections",
+    "store": "Iceberg",
+    "count": 5370
+  },
+  "QA NCR": {
+    "fqn": "js_manuf_ice.cnc_qa.ncr",
+    "store": "Iceberg",
+    "count": 33
+  },
+  "QA Complaints": {
+    "fqn": "js_manuf_ice.cnc_qa.customer_complaints",
+    "store": "Iceberg",
+    "count": 1
+  },
+  "CMMS Assets": {
+    "fqn": "js_manuf_ice.cnc_cmms.assets",
+    "store": "Iceberg",
+    "count": 2
+  },
+  "CMMS Work Orders": {
+    "fqn": "js_manuf_ice.cnc_cmms.work_orders",
+    "store": "Iceberg",
+    "count": 9
+  },
+  "MES Orders": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_mes_production_orders",
+    "store": "MySQL",
+    "count": 9
+  },
+  "MES Lots": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots",
+    "store": "MySQL",
+    "count": 363
+  },
+  "MES Downtime": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_mes_downtime_events",
+    "store": "MySQL",
+    "count": 473
+  },
+  "ERP Customers": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_erp_customers",
+    "store": "MySQL",
+    "count": 3
+  },
+  "ERP Materials": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_erp_materials",
+    "store": "MySQL",
+    "count": 6
+  },
+  "ERP Sales": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_erp_sales_orders",
+    "store": "MySQL",
+    "count": 10
+  },
+  "ERP POs": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_erp_purchase_orders",
+    "store": "MySQL",
+    "count": 3
+  },
+  "ERP Stock": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_erp_spare_parts_stock",
+    "store": "MySQL",
+    "count": 5
+  },
+  "ERP Rates": {
+    "fqn": "js_mysql_mfg.js_mysql_mfg.cnc_erp_cost_rates",
+    "store": "MySQL",
+    "count": 4
+  }
+}

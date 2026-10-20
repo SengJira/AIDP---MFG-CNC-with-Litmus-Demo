@@ -2,7 +2,7 @@ SHELL := /bin/bash
 export PYSPARK_PYTHON := python3
 export PYSPARK_DRIVER_PYTHON := python3
 
-.PHONY: demo-setup demo-reset test dashboard offline
+.PHONY: demo-setup demo-reset test dashboard offline multisource-setup multisource-test multisource-dashboard multisource-offline
 
 demo-setup:
 	python3 scripts/generate_synthetic.py
@@ -24,3 +24,16 @@ dashboard:
 
 offline:
 	OFFLINE_MODE=1 streamlit run app/dashboard.py
+
+multisource-setup:
+	python3 scripts/load_multisource.py
+	python3 scripts/create_analytics_views.py
+
+multisource-test:
+	python3 -m pytest tests/test_multisource.py -q
+
+multisource-dashboard:
+	streamlit run app/multisource_dashboard.py
+
+multisource-offline:
+	OFFLINE_MODE=1 streamlit run app/multisource_dashboard.py
