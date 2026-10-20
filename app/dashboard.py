@@ -259,7 +259,13 @@ def render_detect():
     eq = load_equipment()
     equip_list = eq["equipment_id"].tolist() if not eq.empty else ["CNC-01", "CNC-02"]
     equipment = st.selectbox("Equipment", equip_list, key="detect_equip")
-    run_id = st.text_input("Run ID", f"dashboard_{equipment.lower()}", key="detect_run_id")
+    available_runs = sorted([p.name for p in PROCESSED.iterdir() if (p / "anomaly_events.parquet").exists()])
+    current = st.session_state.get("detect_run_id", "")
+    default_idx = available_runs.index(current) if current in available_runs else 0
+    existing = st.selectbox("Existing run", available_runs, index=default_idx, key="detect_run_select")
+    custom = st.text_input("Or custom run ID for new detection", value="")
+    run_id = custom.strip() if custom.strip() else existing
+    st.session_state["detect_run_id"] = run_id
     seed = st.selectbox("Seed session", ["", "cnc01_baseline"], index=0, key="detect_seed")
     if st.button("Run detection", type="primary"):
         with st.spinner("Running local detection..."):
