@@ -240,18 +240,48 @@ def render_overview():
         col.markdown(f"<div style='text-align:center;'><b>{name}</b><br><span class='{color}'>{status.upper()}</span><br><small>{reason}</small></div>", unsafe_allow_html=True)
 
     eq = load_equipment()
-    baseline_events = load_events("cnc01_baseline")
-    cnc02_events = load_events("cnc02_seeded")
+    run_dirs = [p for p in PROCESSED.iterdir() if p.is_dir() and (p / "anomaly_events.parquet").exists()]
+    all_events = []
+    for d in run_dirs:
+        ev = load_events(d.name)
+        if not ev.empty:
+            ev = ev.copy()
+            ev["run_id"] = d.name
+            all_events.append(ev)
     n_machines = len(eq) if not eq.empty else 2
-    n_events = len(baseline_events) + len(cnc02_events)
+    n_events = sum(len(e) for e in all_events)
     warning_days = 20
     k1, k2, k3 = st.columns(3)
     k1.markdown(f"<div class='kpi'>{n_machines}</div><div class='kpi-label'>Machines monitored</div>", unsafe_allow_html=True)
     k2.markdown(f"<div class='kpi'>{n_events}</div><div class='kpi-label'>Events found</div>", unsafe_allow_html=True)
     k3.markdown(f"<div class='kpi'>{warning_days}</div><div class='kpi-label'>Days of early warning</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("**Offline fallback:** All cached Parquet results and knowledge docs are served from `data/processed/`.")
+    with st.expander("Details"):
+        st.markdown("**Machines monitored**")
+        st.dataframe(eq if not eq.empty else pd.DataFrame({"equipment_id": ["CNC-01", "CNC-02"]}), use_container_width=True)
+        if all_events:
+            combined = pd.concat(all_events, ignore_index=True)
+            st.markdown("**Events found by run**")
+            summary = []
+            for d in run_dirs:
+                ev = combined[combined["run_id"] == d.name]
+                if ev.empty:
+                    continue
+                summary.append({
+                    "run_id": d.name,
+                    "equipment_id": ev["equipment_id"].iloc[0],
+                    "events": len(ev),
+                    "high": int((ev["severity"] == "high").sum()),
+                    "medium": int((ev["severity"] == "medium").sum()),
+                    "low": int((ev["severity"] == "low").sum()),
+                    "first_start": str(ev["start_ts"].min()),
+                    "last_end": str(ev["end_ts"].max()),
+                })
+            st.dataframe(pd.DataFrame(summary), use_container_width=True)
+            st.markdown("**All events**")
+            st.dataframe(combined[["run_id", "equipment_id", "event_id", "start_ts", "end_ts", "severity", "signature", "signals"]].sort_values("start_ts").reset_index(drop=True), use_container_width=True)
+        else:
+            st.info("No events loaded yet. Run make demo-setup.")
 
 
 def render_detect():
