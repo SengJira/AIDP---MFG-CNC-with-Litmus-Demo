@@ -211,6 +211,13 @@ def tab_sources():
 
 def tab_360():
     title("360° View")
+    st.markdown(
+        "This chart joins **OT telemetry** from the Iceberg lakehouse, "
+        "**MES scrap** from MySQL, and **QA NCRs** from Iceberg in one Starburst SQL query. "
+        "The operational systems are never copied — Starburst federates them in place.",
+        unsafe_allow_html=False,
+    )
+
     df = daily_360()
     if "machine_id" in df.columns:
         machines = sorted(df["machine_id"].unique())
@@ -221,23 +228,31 @@ def tab_360():
     d["day"] = pd.to_datetime(d["day"])
     d = d.sort_values("day")
 
+    c1, c2 = st.columns(2)
+    with c1:
+        show_scrap = st.checkbox("Show scrap parts", value=True)
+    with c2:
+        show_ncr = st.checkbox("Show NCR markers", value=True)
+
     fig = make_subplots(specs=[[{"secondary_y": True}]], subplot_titles=[f"Daily 360 — {machine}"])
     fig.add_trace(
         go.Scatter(x=d["day"], y=d["avg_vib_x"], name="VIB_X mm/s", mode="lines+markers",
                    line=dict(color=DELL_BLUE, width=3), marker=dict(size=6)),
         secondary_y=False,
     )
-    fig.add_trace(
-        go.Bar(x=d["day"], y=d["scrap"], name="scrap parts", marker_color="#ff6b6b", opacity=0.5, width=24*60*60*1000),
-        secondary_y=True,
-    )
-    ncr = d[d["ncr_count"] > 0]
-    for day in ncr["day"]:
-        fig.add_vline(x=day, line_color="red", line_dash="dash", line_width=1, opacity=0.6)
-    fig.add_trace(
-        go.Scatter(x=[None], y=[None], mode="lines", line=dict(color="red", dash="dash", width=1), name="NCR opened"),
-        secondary_y=False,
-    )
+    if show_scrap:
+        fig.add_trace(
+            go.Bar(x=d["day"], y=d["scrap"], name="scrap parts", marker_color="#ff6b6b", opacity=0.5, width=24*60*60*1000),
+            secondary_y=True,
+        )
+    if show_ncr:
+        ncr = d[d["ncr_count"] > 0]
+        for day in ncr["day"]:
+            fig.add_vline(x=day, line_color="red", line_dash="dash", line_width=1, opacity=0.6)
+        fig.add_trace(
+            go.Scatter(x=[None], y=[None], mode="lines", line=dict(color="red", dash="dash", width=1), name="NCR opened"),
+            secondary_y=False,
+        )
     fig.update_layout(
         height=650,
         template="plotly_white",
@@ -246,8 +261,16 @@ def tab_360():
         xaxis=dict(tickangle=-45, tickformat="%b %d", dtick=7*24*60*60*1000),
     )
     fig.update_yaxes(title_text="VIB_X mm/s", autorange=True, rangemode="normal", secondary_y=False)
-    fig.update_yaxes(title_text="scrap parts", autorange=True, rangemode="tozero", secondary_y=True)
+    fig.update_yaxes(title_text="scrap parts" if show_scrap else "count", autorange=True, rangemode="tozero", secondary_y=True)
     st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown(
+        "**Federated query behind this chart:** one `SELECT` from `js_manuf_ice.cnc_analytics.cnc_daily_360` "
+        "joins `js_manuf_ice.cnc_historian.sensor_readings` (Iceberg), "
+        "`js_mysql_mfg.js_mysql_mfg.cnc_mes_production_lots` (MySQL), and "
+        "`js_manuf_ice.cnc_qa.ncr` (Iceberg) without moving any source data.",
+        unsafe_allow_html=False,
+    )
     st.dataframe(d.sort_values("day"), use_container_width=True)
 
 
